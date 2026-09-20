@@ -3,8 +3,20 @@
   "name": "Voidwalker Greaves",
   "nameZh": "虚空行者护胫",
   "rarity": "uncommon",
-  "slot": "legs",
+  "slot": "leg_left",
   "stackable": false,
   "description": "磁吸靴底，适合在舰桥上踱步挂机。",
-  "layer": "gear/legs_voidwalker.svg"
+  "layer": "gear/legs_voidwalker.svg",
+  "passiveSkill": {
+    "id": "passive_void_stride",
+    "name": "Void Stride",
+    "nameZh": "虚空步伐",
+    "description": "战斗中缓慢回复生命。",
+    "kind": "passive",
+    "effect": {
+      "type": "regen",
+      "amount": 4,
+      "intervalMs": 5000
+    }
+  }
 }

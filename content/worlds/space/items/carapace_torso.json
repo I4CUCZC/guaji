@@ -3,7 +3,7 @@
   "name": "Carapace Vest",
   "nameZh": "甲壳式胸甲",
   "rarity": "uncommon",
-  "slot": "body",
+  "slot": "waist",
   "stackable": false,
   "description": "轻量化复合板甲，挂机时也显得很正式。",
   "layer": "gear/body_carapace.svg",
@@ -16,6 +16,18 @@
     "effect": {
       "type": "heal",
       "amount": 28
+    },
+    "kind": "active"
+  },
+  "passiveSkill": {
+    "id": "passive_carapace_shell",
+    "name": "Carapace Shell",
+    "nameZh": "甲壳护体",
+    "description": "略微减免受到的伤害。",
+    "kind": "passive",
+    "effect": {
+      "type": "damageReduction",
+      "amount": 0.08
     }
   }
 }

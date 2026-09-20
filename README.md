@@ -12,13 +12,13 @@ Transparent desktop idle companion with a data-driven space-world gear grind.
 ### 功能（Idle-Gear MVP）
 
 1. **单一世界：** 星际世界（`content/worlds/space/`）。生化 / 中土仅留目录占位。
-2. **遭遇战斗（柔和数值）：** 挂机时生成敌人 → 双方用**血条格段 + 颜色**表示状态（默认不显示 ATK/DEF/HP/伤害整数）→ 自动互相攻击。日志用「轻击 / 扎实 / 重击 / 破防」，战况标签「压制 / 胶着 / 苦战」。可选「显示详细数值」给进阶玩家。势均力敌约 **5 分钟**；内部数值未重爆。
-3. **物品技能 + 三格技能栏：** 部分装备定义 `skill`。点空位装配 / 点已装清空重选。施放时**纸娃娃对应部位先动**，再播特效：腕刃→双臂挥砍后刃光；治疗→胸甲脉冲；护盾→肩饰微光；酸蚀→头颅喷溅。
+2. **遭遇战斗（柔和数值）：** 挂机时生成敌人 → 双方用**血条格段 + 颜色**表示状态（默认不显示 ATK/DEF/HP/伤害整数）→ 自动互相攻击。日志用「轻击 / 普通 / 重击 / 破防」，战况标签「压制 / 胶着 / 苦战」。可选「显示详细数值」给进阶玩家。势均力敌约 **5 分钟**；内部数值未重爆。
+3. **主动 3 格 + 被动 3 格：** 装备可定义主动 `skill`（`kind: active`）或 `passiveSkill` / `skill.kind: "passive"`。两栏各自点空位装配、点已装清空重选。主动在战斗中自动释放并播部位特效；被动持续生效（伤害增幅 / 缓慢回血 / 减伤），无施放冷却。
 4. **稀有度：** 普通 / 优良 / 稀有 / 史诗 / 传说，UI 按颜色显示。
 5. **原创风味装备名：** 如「脉冲光刃」「虚空伺服臂甲」「虚空兽头骨」等（JSON 定义，致敬风格但不抄袭可识别 IP）。
-6. **细部位装备：** head / body / arm_left / arm_right / legs / weapon / accessory。
+6. **15 部位装备：** 头部、颈部、左右肩、左右臂、左右手、两枚戒指、腰部、左右腿、左右脚。旧存档映射：body→腰部、legs→左腿、weapon→右手、accessory→颈部（虚空兽头骨→右肩）。
 7. **像素纸娃娃：** 多层 SVG。脉冲腕刃从**双腕发射器**伸出能量刃（非手持握剑）；虚空兽头骨为拉长圆顶 + 肋管 + 下颚须的原创异星轮廓。装备切换图层清晰可见。
-8. **存档：** 等级、XP、背包、装备、技能栏 → `localStorage`。
+8. **存档：** 等级、XP、背包、装备、主动栏、被动栏 → `localStorage`。
 
 ### 遭遇与技能（怎么玩）
 
@@ -46,20 +46,30 @@ npm run build        # 必须通过
 
 **敌人** — 编辑 `content/worlds/space/enemies.json`：`minLevel` / `maxLevel`、`hp`、`attack`、`drops`（权重表）。
 
-**带技能的装备** — 在物品 JSON 增加：
+**带技能的装备** — 在物品 JSON 增加主动或被动：
 
 ```json
 "skill": {
   "id": "skill_example",
   "name": "Example",
   "nameZh": "示例技",
+  "kind": "active",
   "description": "说明",
   "cooldownMs": 10000,
   "effect": { "type": "damage", "amount": 15 }
+},
+"passiveSkill": {
+  "id": "passive_example",
+  "name": "Example Aura",
+  "nameZh": "示例光环",
+  "kind": "passive",
+  "description": "轻微提高输出。",
+  "effect": { "type": "damageAmp", "amount": 0.08 }
 }
 ```
 
-`effect.type` 可为 `damage` | `heal` | `shield`。
+主动 `effect.type`：`damage` | `heal` | `shield`。  
+被动：`damageAmp`（增伤比例）| `regen`（每隔约 5 秒回血）| `damageReduction`（减伤比例）。也可只写 `skill.kind: "passive"`。
 
 ### 目录结构
 
@@ -87,8 +97,8 @@ guaji-desktop-pet/
 ## English
 
 - **Encounter combat:** spawn enemy → HP bars → auto attacks for a few seconds → loot on win; short breather between fights. Early enemies = weak + junk loot; later enemies scale with player level.
-- **Item skills:** equip gear that defines a `skill`; assign up to **3** skills to the skill bar (persisted). Independent cooldowns; auto-cast in combat.
-- **Paper-doll:** finer pixel SVG layers; gear still swaps visibly.
+- **Item skills:** 3 active + 3 passive slots. Actives auto-cast; passives apply ongoing amp / regen / damage reduction. Soft combat logs use 轻击 / 普通 / 重击 / 破防 (no raw numbers by default).
+- **Paper-doll / slots:** 15 body slots (head, neck, shoulders, arms, hands, rings, waist, legs, feet). Wrist blades occupy a hand slot.
 - Data-driven JSON under `content/worlds/space/` (including `enemies.json`).
 
 ### License

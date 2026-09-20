@@ -6,5 +6,16 @@
   "slot": "head",
   "stackable": false,
   "description": "滤掉辐射，也滤掉对现实的怀疑。",
-  "layer": "gear/head_void_goggles.svg"
+  "layer": "gear/head_void_goggles.svg",
+  "passiveSkill": {
+    "id": "passive_void_focus",
+    "name": "Void Focus",
+    "nameZh": "虚空聚焦",
+    "description": "轻微提高输出伤害。",
+    "kind": "passive",
+    "effect": {
+      "type": "damageAmp",
+      "amount": 0.08
+    }
+  }
 }

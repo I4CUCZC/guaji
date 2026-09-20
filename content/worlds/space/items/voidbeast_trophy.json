@@ -3,7 +3,7 @@
   "name": "Voidbeast Trophy",
   "nameZh": "虚空兽头骨",
   "rarity": "epic",
-  "slot": "accessory",
+  "slot": "shoulder_right",
   "stackable": false,
   "description": "肩侧悬挂的异星头骨战利品：拉长圆顶、肋状导管与下颚须，致敬异形轮廓但为原创像素。",
   "layer": "gear/accessory_voidbeast_trophy.svg",
@@ -16,6 +16,7 @@
     "effect": {
       "type": "damage",
       "amount": 48
-    }
+    },
+    "kind": "active"
   }
 }

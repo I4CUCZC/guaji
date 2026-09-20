@@ -3,7 +3,7 @@
   "name": "Pulse Wrist Blades",
   "nameZh": "脉冲腕刃",
   "rarity": "rare",
-  "slot": "weapon",
+  "slot": "hand_right",
   "stackable": false,
   "description": "从双腕发射器伸出的能量刃，狂热者式近战挂机标配（非手持握剑）。",
   "layer": "gear/weapon_pulse_blade.svg",
@@ -16,6 +16,7 @@
     "effect": {
       "type": "damage",
       "amount": 28
-    }
+    },
+    "kind": "active"
   }
 }

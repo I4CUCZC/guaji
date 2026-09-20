@@ -13,6 +13,7 @@ import {
   RARITY_LABEL_ZH,
   SPACE_ITEM_IDS,
   SKILL_BAR_SIZE,
+  PASSIVE_SKILL_BAR_SIZE,
   fightState,
   hpBand,
   shieldTier,
@@ -32,12 +33,20 @@ const DOLL_BASE = './content/characters/paper-doll';
 
 const SLOT_LABEL_ZH: Record<EquipSlot, string> = {
   head: '头部',
-  body: '身体',
+  neck: '颈部',
   arm_left: '左臂',
   arm_right: '右臂',
-  legs: '腿部',
-  weapon: '武器',
-  accessory: '饰品',
+  hand_left: '左手',
+  hand_right: '右手',
+  ring_1: '戒指一',
+  ring_2: '戒指二',
+  shoulder_left: '左肩',
+  shoulder_right: '右肩',
+  waist: '腰部',
+  leg_left: '左腿',
+  leg_right: '右腿',
+  foot_left: '左脚',
+  foot_right: '右脚',
 };
 
 function rarityClass(r: Rarity): string {
@@ -142,9 +151,14 @@ async function boot(): Promise<void> {
       </div>
     </div>
     <div class="skill-section no-drag">
-      <div class="section-title">技能栏（点空位装配 · 点已装可清空/重选 · 战斗中自动释放）</div>
+      <div class="section-title">主动技能（点空位装配 · 点已装可清空/重选 · 战斗中自动释放）</div>
       <div class="skill-bar" data-skill-bar></div>
       <div class="skill-picker" data-skill-picker hidden></div>
+    </div>
+    <div class="skill-section passive-section no-drag">
+      <div class="section-title">被动技能（装备解锁 · 点空位装配 · 持续生效，无施放冷却）</div>
+      <div class="skill-bar passive-bar" data-passive-bar></div>
+      <div class="skill-picker" data-passive-picker hidden></div>
     </div>
     <div class="equip-section no-drag">
       <div class="section-title">装备栏</div>
@@ -162,7 +176,7 @@ async function boot(): Promise<void> {
       <button type="button" class="primary" data-toggle>暂停挂机</button>
       <button type="button" data-reset>重置存档</button>
     </div>
-    <p class="hint no-drag">一场势均力敌的遭遇约 5 分钟。血条用颜色与格段表示状态；战斗日志用「轻击 / 扎实 / 重击 / 破防」描述手感。点技能栏空位装配技能；施放时纸娃娃对应部位先动再出特效。数据保存在 localStorage。</p>
+    <p class="hint no-drag">一场势均力敌的遭遇约 5 分钟。血条用颜色与格段表示状态；战斗日志用「轻击 / 普通 / 重击 / 破防」描述手感。主动与被动各 3 格；施放主动时纸娃娃对应部位先动再出特效。数据保存在 localStorage。</p>
   `;
   app.appendChild(panel);
 
@@ -190,6 +204,8 @@ async function boot(): Promise<void> {
     drops: panel.querySelector('[data-drops]') as HTMLElement,
     skillBar: panel.querySelector('[data-skill-bar]') as HTMLElement,
     skillPicker: panel.querySelector('[data-skill-picker]') as HTMLElement,
+    passiveBar: panel.querySelector('[data-passive-bar]') as HTMLElement,
+    passivePicker: panel.querySelector('[data-passive-picker]') as HTMLElement,
     equip: panel.querySelector('[data-equip]') as HTMLElement,
     inv: panel.querySelector('[data-inv]') as HTMLElement,
     toggle: panel.querySelector('[data-toggle]') as HTMLButtonElement,
@@ -209,7 +225,9 @@ async function boot(): Promise<void> {
   panel.classList.toggle('show-detail-nums', showDetailedNumbers);
 
   let pickSlot: number | null = null;
+  let pickPassiveSlot: number | null = null;
   let lastSkillSig = '';
+  let lastPassiveSig = '';
   let lastEquipSig = '';
   let lastInvSig = '';
   let lastDollSig = '';
@@ -225,10 +243,10 @@ async function boot(): Promise<void> {
   }
 
   const PART_ANIM: Record<string, string[]> = {
-    slash: ['arm_left', 'arm_right', 'weapon'],
-    heal: ['body'],
-    shield: ['accessory', 'arm_left', 'arm_right', 'head'],
-    acid: ['head', 'accessory'],
+    slash: ['arm_left', 'arm_right', 'hand_left', 'hand_right'],
+    heal: ['body', 'waist'],
+    shield: ['neck', 'shoulder_left', 'shoulder_right', 'arm_left', 'arm_right', 'head'],
+    acid: ['head', 'shoulder_right', 'neck'],
   };
 
   let vfxClearTimer = 0;
@@ -237,7 +255,7 @@ async function boot(): Promise<void> {
   function layerPartKind(src: string, kind: string): string {
     if (kind && kind !== 'base') return kind;
     const m = src.match(
-      /(?:^|\/)(body|legs|arm_left|arm_right|head|weapon|accessory)(?:[_./]|$)/,
+      /(?:^|\/)(body|legs|leg_left|leg_right|arm_left|arm_right|hand_left|hand_right|head|neck|waist|shoulder_left|shoulder_right|weapon|accessory)(?:[_./]|$)/,
     );
     return m?.[1] ?? 'body';
   }
@@ -456,6 +474,9 @@ async function boot(): Promise<void> {
 
   function openPickerFor(slotIndex: number): void {
     pickSlot = pickSlot === slotIndex ? null : slotIndex;
+    pickPassiveSlot = null;
+    renderPassiveBar(engine.getSnapshot(), true);
+    renderPassivePicker(engine.getSnapshot());
     renderSkillBar(engine.getSnapshot(), true);
     renderSkillPicker(engine.getSnapshot());
   }
@@ -608,7 +629,7 @@ async function boot(): Promise<void> {
       btn.type = 'button';
       btn.className = 'skill-pick-btn choice';
       const already = snap.skillBar.includes(skill.id);
-      btn.textContent = `${skill.nameZh} · CD ${(skill.cooldownMs / 1000).toFixed(0)}秒${
+      btn.textContent = `${skill.nameZh} · CD ${((skill.cooldownMs ?? 0) / 1000).toFixed(0)}秒${
         already ? '（已装配）' : ''
       }`;
       btn.title = skill.description ?? '';
@@ -625,6 +646,165 @@ async function boot(): Promise<void> {
       list.appendChild(btn);
     }
     els.skillPicker.appendChild(list);
+  }
+
+  function shortPassiveLabel(skill: {
+    effect: { type: string; amount: number };
+    description?: string;
+  }): string {
+    const t = skill.effect.type;
+    const a = skill.effect.amount;
+    if (t === 'damageAmp') return `伤害+${Math.round(a * 100)}%`;
+    if (t === 'damageReduction') return `减伤${Math.round(a * 100)}%`;
+    if (t === 'regen') return '缓慢回血';
+    return skill.description ?? '被动效果';
+  }
+
+  function passiveBarSignature(snap: GameSnapshot): string {
+    return (
+      snap.combat.passiveSlots.map((slot) => `${slot.skillId ?? ''}`).join('|') +
+      `|pick:${pickPassiveSlot}`
+    );
+  }
+
+  function openPassivePickerFor(slotIndex: number): void {
+    pickPassiveSlot = pickPassiveSlot === slotIndex ? null : slotIndex;
+    pickSlot = null;
+    renderSkillBar(engine.getSnapshot(), true);
+    renderSkillPicker(engine.getSnapshot());
+    renderPassiveBar(engine.getSnapshot(), true);
+    renderPassivePicker(engine.getSnapshot());
+  }
+
+  function renderPassiveBar(snap: GameSnapshot, force = false): void {
+    const sig = passiveBarSignature(snap);
+    if (
+      !force &&
+      sig === lastPassiveSig &&
+      els.passiveBar.childElementCount === PASSIVE_SKILL_BAR_SIZE
+    ) {
+      return;
+    }
+    lastPassiveSig = sig;
+    els.passiveBar.replaceChildren();
+    for (let i = 0; i < PASSIVE_SKILL_BAR_SIZE; i++) {
+      const slot = snap.combat.passiveSlots[i];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'skill-slot passive-slot';
+      btn.setAttribute('data-slot', String(i));
+      if (pickPassiveSlot === i) btn.classList.add('picking');
+      if (slot?.skill) {
+        btn.classList.add('ready');
+        const name = document.createElement('span');
+        name.className = 'skill-name';
+        name.textContent = slot.skill.nameZh;
+        const desc = document.createElement('span');
+        desc.className = 'skill-cd';
+        desc.textContent = shortPassiveLabel(slot.skill);
+        const hint = document.createElement('span');
+        hint.className = 'skill-hint';
+        hint.textContent = '持续生效 · 点击更换';
+        btn.append(name, desc, hint);
+        btn.title = `${slot.skill.description ?? shortPassiveLabel(slot.skill)}\n点击打开选择器（清空 / 重选）`;
+      } else {
+        btn.classList.add('empty');
+        btn.innerHTML =
+          `<span class="skill-name">被动 ${i + 1}</span>` +
+          `<span class="skill-cd">点击装配</span>`;
+        btn.title = '点击选择已解锁被动';
+      }
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openPassivePickerFor(i);
+      });
+      els.passiveBar.appendChild(btn);
+    }
+  }
+
+  function renderPassivePicker(snap: GameSnapshot): void {
+    els.passivePicker.replaceChildren();
+    if (pickPassiveSlot === null) {
+      els.passivePicker.hidden = true;
+      els.passivePicker.classList.remove('open');
+      return;
+    }
+    els.passivePicker.hidden = false;
+    els.passivePicker.classList.add('open');
+
+    const header = document.createElement('div');
+    header.className = 'skill-picker-header';
+    header.textContent = `为被动第 ${pickPassiveSlot + 1} 格选择技能`;
+    els.passivePicker.appendChild(header);
+
+    const actions = document.createElement('div');
+    actions.className = 'skill-picker-actions';
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'skill-pick-btn danger';
+    clearBtn.textContent = '清空此格';
+    clearBtn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const idx = pickPassiveSlot!;
+      pickPassiveSlot = null;
+      engine.setPassiveSkillBarSlot(idx, null);
+      lastPassiveSig = '';
+      renderPassiveBar(engine.getSnapshot(), true);
+      renderPassivePicker(engine.getSnapshot());
+    });
+    actions.appendChild(clearBtn);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'skill-pick-btn';
+    closeBtn.textContent = '关闭';
+    closeBtn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      pickPassiveSlot = null;
+      lastPassiveSig = '';
+      renderPassiveBar(engine.getSnapshot(), true);
+      renderPassivePicker(engine.getSnapshot());
+    });
+    actions.appendChild(closeBtn);
+    els.passivePicker.appendChild(actions);
+
+    if (snap.availablePassiveSkills.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'meta';
+      empty.textContent =
+        '暂无可用被动。请先装备带被动的道具（护目镜 / 护胫 / 胸甲 / 头盔 / 圣物等）。';
+      els.passivePicker.appendChild(empty);
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'skill-picker-list';
+    for (const skill of snap.availablePassiveSkills) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'skill-pick-btn choice';
+      const already = snap.passiveSkillBar.includes(skill.id);
+      btn.textContent = `${skill.nameZh} · ${shortPassiveLabel(skill)}${
+        already ? '（已装配）' : ''
+      }`;
+      btn.title = skill.description ?? '';
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const idx = pickPassiveSlot!;
+        pickPassiveSlot = null;
+        engine.setPassiveSkillBarSlot(idx, skill.id);
+        lastPassiveSig = '';
+        renderPassiveBar(engine.getSnapshot(), true);
+        renderPassivePicker(engine.getSnapshot());
+      });
+      list.appendChild(btn);
+    }
+    els.passivePicker.appendChild(list);
   }
 
   function renderEquip(snap: GameSnapshot): void {
@@ -646,10 +826,18 @@ async function boot(): Promise<void> {
       span.className = 'slot-item';
       if (item) {
         span.classList.add(rarityClass(item.rarity));
-        span.textContent = item.skill ? `${item.nameZh}★` : item.nameZh;
-        btn.title = item.skill
-          ? `技能：${item.skill.nameZh} — 点击卸下`
-          : '点击卸下';
+        const marks =
+          (item.skill && (item.skill.kind ?? 'active') === 'active' ? '★' : '') +
+          (item.passiveSkill || item.skill?.kind === 'passive' ? '◆' : '');
+        span.textContent = marks ? `${item.nameZh}${marks}` : item.nameZh;
+        const tips: string[] = [];
+        if (item.skill && (item.skill.kind ?? 'active') === 'active') {
+          tips.push(`主动：${item.skill.nameZh}`);
+        }
+        if (item.passiveSkill) tips.push(`被动：${item.passiveSkill.nameZh}`);
+        else if (item.skill?.kind === 'passive') tips.push(`被动：${item.skill.nameZh}`);
+        tips.push('点击卸下');
+        btn.title = tips.join(' — ');
       } else {
         span.textContent = '空';
         span.style.opacity = '0.4';
@@ -721,7 +909,9 @@ async function boot(): Promise<void> {
       btn.disabled = !row.equippable;
       const name = document.createElement('span');
       name.className = rarityClass(row.item.rarity);
-      const skillMark = row.item.skill ? '★' : '';
+      const skillMark =
+        (row.item.skill && (row.item.skill.kind ?? 'active') === 'active' ? '★' : '') +
+        (row.item.passiveSkill || row.item.skill?.kind === 'passive' ? '◆' : '');
       name.textContent = `${itemLabel(row.item)}${skillMark}`;
       const qty = document.createElement('span');
       qty.className = 'qty';
@@ -732,9 +922,15 @@ async function boot(): Promise<void> {
         : `×${row.qty}`;
       if (row.item.stackable) qty.textContent = `×${row.qty}`;
       btn.append(name, qty);
-      btn.title = row.item.skill
-        ? `${row.item.description ?? ''}\n技能：${row.item.skill.nameZh}`
-        : row.item.description ?? '';
+      {
+        const tips = [row.item.description ?? ''];
+        if (row.item.skill && (row.item.skill.kind ?? 'active') === 'active') {
+          tips.push(`主动：${row.item.skill.nameZh}`);
+        }
+        if (row.item.passiveSkill) tips.push(`被动：${row.item.passiveSkill.nameZh}`);
+        else if (row.item.skill?.kind === 'passive') tips.push(`被动：${row.item.skill.nameZh}`);
+        btn.title = tips.filter(Boolean).join('\n');
+      }
       if (row.equippable) {
         btn.addEventListener('click', (ev) => {
           ev.stopPropagation();
@@ -795,13 +991,18 @@ async function boot(): Promise<void> {
 
     renderCombat(snap);
     renderSkillBar(snap);
-    // picker only rebuilt when pickSlot changes / equip changes — keep open state
+    renderPassiveBar(snap);
     if (pickSlot !== null) {
-      // refresh available list without closing
       const open = els.skillPicker.classList.contains('open');
       if (!open) renderSkillPicker(snap);
     } else if (!els.skillPicker.hidden) {
       renderSkillPicker(snap);
+    }
+    if (pickPassiveSlot !== null) {
+      const open = els.passivePicker.classList.contains('open');
+      if (!open) renderPassivePicker(snap);
+    } else if (!els.passivePicker.hidden) {
+      renderPassivePicker(snap);
     }
     renderDoll(snap);
     renderEquip(snap);
@@ -809,15 +1010,25 @@ async function boot(): Promise<void> {
     renderDrops(snap);
   }
 
-  // Close picker when clicking outside skill section
+  // Close pickers when clicking outside skill sections
   panel.addEventListener('click', (ev) => {
-    if (pickSlot === null) return;
     const t = ev.target as Node;
-    if (els.skillBar.contains(t) || els.skillPicker.contains(t)) return;
-    pickSlot = null;
-    lastSkillSig = '';
-    renderSkillBar(engine.getSnapshot(), true);
-    renderSkillPicker(engine.getSnapshot());
+    if (pickSlot !== null) {
+      if (!els.skillBar.contains(t) && !els.skillPicker.contains(t)) {
+        pickSlot = null;
+        lastSkillSig = '';
+        renderSkillBar(engine.getSnapshot(), true);
+        renderSkillPicker(engine.getSnapshot());
+      }
+    }
+    if (pickPassiveSlot !== null) {
+      if (!els.passiveBar.contains(t) && !els.passivePicker.contains(t)) {
+        pickPassiveSlot = null;
+        lastPassiveSig = '';
+        renderPassiveBar(engine.getSnapshot(), true);
+        renderPassivePicker(engine.getSnapshot());
+      }
+    }
   });
 
   els.detailToggle.addEventListener('change', () => {
@@ -834,6 +1045,7 @@ async function boot(): Promise<void> {
   engine.subscribe((snap, tick) => renderAll(snap, tick));
   renderAll(engine.getSnapshot(), null);
   renderSkillPicker(engine.getSnapshot());
+  renderPassivePicker(engine.getSnapshot());
 
   els.toggle.addEventListener('click', () => {
     if (engine.getSnapshot().idleStatus === 'killing') engine.pause();
@@ -841,12 +1053,14 @@ async function boot(): Promise<void> {
   });
 
   els.reset.addEventListener('click', () => {
-    if (!confirm('确定重置存档？等级 / 背包 / 装备 / 技能栏将清空。')) return;
+    if (!confirm('确定重置存档？等级 / 背包 / 装备 / 主动与被动技能栏将清空。')) return;
     engine.pause();
     const fresh = defaultSave(content.world.id);
     writeSave(fresh);
     pickSlot = null;
+    pickPassiveSlot = null;
     lastSkillSig = '';
+    lastPassiveSig = '';
     lastEquipSig = '';
     lastInvSig = '';
     lastDollSig = '';

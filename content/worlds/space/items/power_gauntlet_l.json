@@ -16,6 +16,7 @@
     "effect": {
       "type": "shield",
       "amount": 30
-    }
+    },
+    "kind": "active"
   }
 }

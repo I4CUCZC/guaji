@@ -20,10 +20,16 @@ import { addItem } from './inventory';
 import { applyXp, randomInt, xpRequiredForLevel } from './xp';
 import { writeSave } from './save';
 import {
+  assignPassiveSkillToBar,
   assignSkillToBar,
   autoFillEmptySlots,
+  autoFillPassiveEmptySlots,
+  buildPassiveSlotViews,
   buildSkillSlotViews,
+  equippedPassiveSkills,
+  getAvailablePassiveSkills,
   getAvailableSkills,
+  sanitizePassiveSkillBar,
   sanitizeSkillBar,
 } from './skills';
 import {
@@ -107,11 +113,57 @@ export class IdleEngine {
     this.resetPlayerVitals(true);
   }
 
+  private regenAcc = 0;
+
   private ensureSkillBar(): void {
     const available = getAvailableSkills(this.save.equipment, this.itemsById);
     let bar = sanitizeSkillBar(this.save.skillBar ?? [null, null, null], available);
     bar = autoFillEmptySlots(bar, available);
     this.save.skillBar = bar;
+
+    const passives = getAvailablePassiveSkills(this.save.equipment, this.itemsById);
+    let pbar = sanitizePassiveSkillBar(
+      this.save.passiveSkillBar ?? [null, null, null],
+      passives,
+    );
+    pbar = autoFillPassiveEmptySlots(pbar, passives);
+    this.save.passiveSkillBar = pbar;
+  }
+
+  private assignedPassives(): SkillDef[] {
+    return equippedPassiveSkills(
+      this.save.passiveSkillBar ?? [null, null, null],
+      getAvailablePassiveSkills(this.save.equipment, this.itemsById),
+    );
+  }
+
+  private outgoingDamage(base: number): number {
+    let amp = 0;
+    for (const p of this.assignedPassives()) {
+      if (p.effect.type === 'damageAmp') amp += p.effect.amount;
+    }
+    return Math.max(1, Math.round(base * (1 + amp)));
+  }
+
+  private incomingDamage(raw: number): number {
+    let red = 0;
+    for (const p of this.assignedPassives()) {
+      if (p.effect.type === 'damageReduction') red += p.effect.amount;
+    }
+    red = Math.min(0.6, Math.max(0, red));
+    return Math.max(0, Math.round(raw * (1 - red)));
+  }
+
+  private applyPassiveTicks(dt: number): void {
+    this.regenAcc += dt;
+    if (this.regenAcc < 5000) return;
+    this.regenAcc = 0;
+    let heal = 0;
+    for (const p of this.assignedPassives()) {
+      if (p.effect.type === 'regen') heal += p.effect.amount;
+    }
+    if (heal <= 0 || this.playerHp <= 0) return;
+    this.playerHp = Math.min(this.playerMaxHp, this.playerHp + heal);
   }
 
   private playerMaxHpForLevel(level: number): number {
@@ -120,9 +172,10 @@ export class IdleEngine {
 
   private playerAttackPower(): number {
     let atk = 6 + Math.floor(this.save.level * 1.8);
-    const weaponId = this.save.equipment.weapon;
-    if (weaponId) {
-      const item = this.itemsById.get(weaponId);
+    for (const slot of ['hand_left', 'hand_right'] as const) {
+      const id = this.save.equipment[slot];
+      if (!id) continue;
+      const item = this.itemsById.get(id);
       if (item) atk += RARITY_ATK[item.rarity] ?? 2;
     }
     for (const slot of ['arm_left', 'arm_right'] as const) {
@@ -161,6 +214,7 @@ export class IdleEngine {
 
   getSnapshot(): GameSnapshot {
     const available = getAvailableSkills(this.save.equipment, this.itemsById);
+    const passives = getAvailablePassiveSkills(this.save.equipment, this.itemsById);
     return {
       world: this.world,
       level: this.save.level,
@@ -183,10 +237,16 @@ export class IdleEngine {
           available,
           this.cooldownRemaining,
         ),
+        passiveSlots: buildPassiveSlotViews(
+          this.save.passiveSkillBar ?? [null, null, null],
+          passives,
+        ),
         lastVfx: this.lastVfx,
       },
       skillBar: this.save.skillBar,
       availableSkills: available,
+      passiveSkillBar: this.save.passiveSkillBar ?? [null, null, null],
+      availablePassiveSkills: passives,
     };
   }
 
@@ -239,6 +299,8 @@ export class IdleEngine {
     }
 
     let result: TickResult | null = null;
+
+    this.applyPassiveTicks(dt);
 
     if (this.phase === 'breather') {
       this.breatherCd -= dt;
@@ -303,7 +365,7 @@ export class IdleEngine {
 
     this.playerAtkCd -= dt;
     if (this.playerAtkCd <= 0 && this.enemy.hp > 0) {
-      const dmg = this.playerAttackPower();
+      const dmg = this.outgoingDamage(this.playerAttackPower());
       this.enemy.hp = Math.max(0, this.enemy.hp - dmg);
       this.pushLog(
         formatDamageOutLog(this.enemy.nameZh, dmg, this.enemy.maxHp, false),
@@ -318,7 +380,7 @@ export class IdleEngine {
 
     this.enemyAtkCd -= dt;
     if (this.enemyAtkCd <= 0 && this.enemy.hp > 0) {
-      const raw = this.enemy.attack;
+      const raw = this.incomingDamage(this.enemy.attack);
       let absorbed = 0;
       if (this.playerShield > 0) {
         absorbed = Math.min(this.playerShield, raw);
@@ -380,12 +442,13 @@ export class IdleEngine {
   private applySkill(skill: SkillDef): void {
     const { effect } = skill;
     if (effect.type === 'damage' && this.enemy) {
-      this.enemy.hp = Math.max(0, this.enemy.hp - effect.amount);
+      const amount = this.outgoingDamage(effect.amount);
+      this.enemy.hp = Math.max(0, this.enemy.hp - amount);
       this.pushLog(
         formatSkillDamageLog(
           skill.nameZh,
           this.enemy.nameZh,
-          effect.amount,
+          amount,
           this.enemy.maxHp,
           false,
         ),
@@ -411,7 +474,7 @@ export class IdleEngine {
         'skill',
       );
     }
-    this.cooldownRemaining[skill.id] = skill.cooldownMs;
+    this.cooldownRemaining[skill.id] = skill.cooldownMs ?? 10000;
     this.vfxSeq += 1;
     this.lastVfx = {
       skillId: skill.id,
@@ -480,6 +543,18 @@ export class IdleEngine {
     const available = getAvailableSkills(this.save.equipment, this.itemsById);
     if (skillId && !available.some((s) => s.id === skillId)) return;
     this.save.skillBar = assignSkillToBar(this.save.skillBar, slotIndex, skillId);
+    if (this.persist) writeSave(this.save);
+    this.emit(null);
+  }
+
+  setPassiveSkillBarSlot(slotIndex: number, skillId: string | null): void {
+    const available = getAvailablePassiveSkills(this.save.equipment, this.itemsById);
+    if (skillId && !available.some((s) => s.id === skillId)) return;
+    this.save.passiveSkillBar = assignPassiveSkillToBar(
+      this.save.passiveSkillBar ?? [null, null, null],
+      slotIndex,
+      skillId,
+    );
     if (this.persist) writeSave(this.save);
     this.emit(null);
   }

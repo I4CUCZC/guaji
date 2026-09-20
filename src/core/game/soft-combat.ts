@@ -3,18 +3,19 @@
  * Internal math stays numeric; UI & logs use tiers and bars.
  */
 
-export type DamageTier = '轻击' | '扎实' | '重击' | '破防';
+export type DamageTier = '轻击' | '普通' | '重击' | '破防';
 export type FightState = '压制' | '胶着' | '苦战';
 export type HealTier = '微愈' | '回春' | '大愈';
 export type ShieldTier = '薄盾' | '护盾' | '坚壁';
 
 /** Map raw damage vs target max HP → qualitative tier. */
 export function damageTier(damage: number, targetMaxHp: number): DamageTier {
-  if (targetMaxHp <= 0) return '扎实';
+  if (targetMaxHp <= 0) return '普通';
   const r = damage / targetMaxHp;
+  // Clear mapping by target max HP: <2% 轻击, 2–5% 普通, 5–12% 重击, ≥12% 破防.
   if (r >= 0.12) return '破防';
   if (r >= 0.05) return '重击';
-  if (r >= 0.02) return '扎实';
+  if (r >= 0.02) return '普通';
   return '轻击';
 }
 

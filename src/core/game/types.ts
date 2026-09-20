@@ -4,21 +4,38 @@ export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export type EquipSlot =
   | 'head'
-  | 'body'
+  | 'neck'
   | 'arm_left'
   | 'arm_right'
-  | 'legs'
-  | 'weapon'
-  | 'accessory';
+  | 'hand_left'
+  | 'hand_right'
+  | 'ring_1'
+  | 'ring_2'
+  | 'shoulder_left'
+  | 'shoulder_right'
+  | 'waist'
+  | 'leg_left'
+  | 'leg_right'
+  | 'foot_left'
+  | 'foot_right';
 
+/** Stable UI order for the 15 fine-grained equipment slots. */
 export const EQUIP_SLOTS: EquipSlot[] = [
   'head',
-  'body',
+  'neck',
+  'shoulder_left',
+  'shoulder_right',
   'arm_left',
   'arm_right',
-  'legs',
-  'weapon',
-  'accessory',
+  'hand_left',
+  'hand_right',
+  'ring_1',
+  'ring_2',
+  'waist',
+  'leg_left',
+  'leg_right',
+  'foot_left',
+  'foot_right',
 ];
 
 export const RARITY_ORDER: Rarity[] = [
@@ -46,13 +63,23 @@ export const RARITY_COLOR: Record<Rarity, string> = {
 };
 
 export const SKILL_BAR_SIZE = 3;
+export const PASSIVE_SKILL_BAR_SIZE = 3;
 
-export type SkillEffectType = 'damage' | 'heal' | 'shield';
+export type SkillKind = 'active' | 'passive';
+export type SkillEffectType =
+  | 'damage'
+  | 'heal'
+  | 'shield'
+  | 'damageAmp'
+  | 'regen'
+  | 'damageReduction';
 
 export interface SkillEffect {
   type: SkillEffectType;
-  /** Flat amount for damage / heal / shield HP */
+  /** Flat amount for damage/heal/shield/regen; 0..1 ratio for amp/reduction. */
   amount: number;
+  /** Optional passive pulse interval; regen defaults to 5 seconds. */
+  intervalMs?: number;
 }
 
 export interface SkillDef {
@@ -60,7 +87,10 @@ export interface SkillDef {
   name: string;
   nameZh: string;
   description?: string;
-  cooldownMs: number;
+  /** Missing kind is treated as active for backwards-compatible item JSON. */
+  kind?: SkillKind;
+  /** Active-only; passive definitions may omit it. */
+  cooldownMs?: number;
   effect: SkillEffect;
 }
 
@@ -75,8 +105,10 @@ export interface ItemDef {
   description?: string;
   /** Path relative to paper-doll layers/ when equippable */
   layer: string | null;
-  /** Optional combat skill unlocked while this item is equipped */
+  /** Optional skill; kind defaults to active for old content. */
   skill?: SkillDef;
+  /** Optional always-on skill unlocked while this item is equipped. */
+  passiveSkill?: SkillDef;
 }
 
 export interface DropEntry {
@@ -143,9 +175,7 @@ export interface PaperDollDef {
   slots: EquipSlot[];
   /** Draw order: base paths or "slot:<EquipSlot>" placeholders */
   layerOrder: string[];
-  baseLayers: Partial<
-    Record<EquipSlot | 'body' | 'head' | 'legs' | 'arm_left' | 'arm_right', string>
-  >;
+  baseLayers: Partial<Record<EquipSlot | 'body' | 'legs', string>>;
 }
 
 export interface InventoryEntry {
@@ -155,11 +185,11 @@ export interface InventoryEntry {
 
 export type EquipmentMap = Partial<Record<EquipSlot, string>>;
 
-/** Exactly 3 skill-bar slots; null = empty */
+/** Exactly 3 slots; null = empty. Used independently by active and passive bars. */
 export type SkillBarLoadout = [string | null, string | null, string | null];
 
 export interface SaveData {
-  version: 1;
+  version: 1 | 2;
   worldId: string;
   level: number;
   xp: number;
@@ -167,8 +197,10 @@ export interface SaveData {
   equipment: EquipmentMap;
   /** Recent drop item ids (newest first) */
   recentDrops: string[];
-  /** Skill ids assigned to the 3-slot bar */
+  /** Active skill ids assigned to the 3-slot bar. */
   skillBar: SkillBarLoadout;
+  /** Passive skill ids assigned to the separate 3-slot bar. */
+  passiveSkillBar: SkillBarLoadout;
 }
 
 export type CombatPhase = 'breather' | 'fighting' | 'paused';
@@ -214,6 +246,7 @@ export interface CombatView {
   playerShield: number;
   log: CombatLogLine[];
   skillSlots: SkillSlotView[];
+  passiveSlots: SkillSlotView[];
   lastVfx: SkillVfxEvent | null;
 }
 
@@ -250,4 +283,6 @@ export interface GameSnapshot {
   combat: CombatView;
   skillBar: SkillBarLoadout;
   availableSkills: SkillDef[];
+  passiveSkillBar: SkillBarLoadout;
+  availablePassiveSkills: SkillDef[];
 }

@@ -16,6 +16,7 @@
     "effect": {
       "type": "damage",
       "amount": 22
-    }
+    },
+    "kind": "active"
   }
 }

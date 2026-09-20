@@ -16,6 +16,18 @@
     "effect": {
       "type": "shield",
       "amount": 55
+    },
+    "kind": "active"
+  },
+  "passiveSkill": {
+    "id": "passive_aegis_plate",
+    "name": "Aegis Plate",
+    "nameZh": "神盾覆层",
+    "description": "持续减免部分伤害。",
+    "kind": "passive",
+    "effect": {
+      "type": "damageReduction",
+      "amount": 0.06
     }
   }
 }

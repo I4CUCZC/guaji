@@ -3,7 +3,7 @@
   "name": "Starfall Relic",
   "nameZh": "星陨圣物",
   "rarity": "legendary",
-  "slot": "accessory",
+  "slot": "neck",
   "stackable": false,
   "description": "传说中坠落自星门的碎片，挂机运气的具象化。",
   "layer": "gear/accessory_starfall.svg",
@@ -16,6 +16,19 @@
     "effect": {
       "type": "heal",
       "amount": 70
+    },
+    "kind": "active"
+  },
+  "passiveSkill": {
+    "id": "passive_starfall_aura",
+    "name": "Starfall Aura",
+    "nameZh": "星陨光晕",
+    "description": "缓慢回复生命。",
+    "kind": "passive",
+    "effect": {
+      "type": "regen",
+      "amount": 6,
+      "intervalMs": 5000
     }
   }
 }
