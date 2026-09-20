@@ -72,4 +72,11 @@ export const SPACE_ITEM_IDS = [
   'voidbeast_trophy',
   'aegis_helm',
   'starfall_relic',
+  'scrap_pauldron_l',
+  'mag_clamp_l',
+  'signal_ring',
+  'flux_band',
+  'shin_guard_r',
+  'magboot_l',
+  'magboot_r',
 ] as const;

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- placeholder layer for slot:neck -->
+  <rect x="26" y="24" width="12" height="6" fill="#c05621"/>
+  <rect x="28" y="25" width="8" height="4" fill="#f6ad55"/>
+  <rect x="30" y="26" width="4" height="2" fill="#feebc8"/>
+  <rect x="2" y="2" width="3" height="3" fill="#f6ad55"/>
+</svg>

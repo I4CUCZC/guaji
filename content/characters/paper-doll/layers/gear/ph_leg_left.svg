@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- placeholder layer for slot:leg_left -->
+  <rect x="20" y="50" width="11" height="18" fill="#553c9a"/>
+  <rect x="22" y="52" width="7" height="12" fill="#9f7aea"/>
+  <rect x="21" y="64" width="9" height="5" fill="#e9d8fd"/>
+  <rect x="2" y="2" width="3" height="3" fill="#9f7aea"/>
+</svg>

@@ -1,0 +1,21 @@
+{
+  "id": "signal_ring",
+  "name": "Signal Ring",
+  "nameZh": "信号戒指",
+  "rarity": "uncommon",
+  "slot": "ring_1",
+  "stackable": false,
+  "description": "粉色散热环，装备后在左手侧显示色块。",
+  "layer": "gear/ph_ring_1.svg",
+  "passiveSkill": {
+    "id": "passive_signal_ping",
+    "name": "Signal Ping",
+    "nameZh": "信号回响",
+    "description": "轻微提高输出伤害。",
+    "kind": "passive",
+    "effect": {
+      "type": "damageAmp",
+      "amount": 0.04
+    }
+  }
+}

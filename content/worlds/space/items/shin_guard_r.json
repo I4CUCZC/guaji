@@ -1,0 +1,10 @@
+{
+  "id": "shin_guard_r",
+  "name": "Plated Shin Guard (R)",
+  "nameZh": "镀层护胫·右",
+  "rarity": "common",
+  "slot": "leg_right",
+  "stackable": false,
+  "description": "右腿护胫像素占位，与左腿虚空行者护胫成对。",
+  "layer": "gear/ph_leg_right.svg"
+}

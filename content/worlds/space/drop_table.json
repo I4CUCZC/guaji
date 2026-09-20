@@ -1,16 +1,95 @@
 {
   "worldId": "space",
   "entries": [
-    { "itemId": "scrap_plasteel", "weight": 40, "rarity": "common" },
-    { "itemId": "power_cell", "weight": 28, "rarity": "common" },
-    { "itemId": "void_goggles", "weight": 14, "rarity": "uncommon" },
-    { "itemId": "carapace_torso", "weight": 12, "rarity": "uncommon" },
-    { "itemId": "greaves_voidwalker", "weight": 10, "rarity": "uncommon" },
-    { "itemId": "power_gauntlet_l", "weight": 8, "rarity": "rare" },
-    { "itemId": "power_gauntlet_r", "weight": 8, "rarity": "rare" },
-    { "itemId": "pulse_blade", "weight": 5, "rarity": "rare" },
-    { "itemId": "voidbeast_trophy", "weight": 3, "rarity": "epic" },
-    { "itemId": "aegis_helm", "weight": 2, "rarity": "epic" },
-    { "itemId": "starfall_relic", "weight": 1, "rarity": "legendary" }
+    {
+      "itemId": "scrap_plasteel",
+      "weight": 40,
+      "rarity": "common"
+    },
+    {
+      "itemId": "power_cell",
+      "weight": 28,
+      "rarity": "common"
+    },
+    {
+      "itemId": "void_goggles",
+      "weight": 14,
+      "rarity": "uncommon"
+    },
+    {
+      "itemId": "carapace_torso",
+      "weight": 12,
+      "rarity": "uncommon"
+    },
+    {
+      "itemId": "greaves_voidwalker",
+      "weight": 10,
+      "rarity": "uncommon"
+    },
+    {
+      "itemId": "power_gauntlet_l",
+      "weight": 8,
+      "rarity": "rare"
+    },
+    {
+      "itemId": "power_gauntlet_r",
+      "weight": 8,
+      "rarity": "rare"
+    },
+    {
+      "itemId": "pulse_blade",
+      "weight": 5,
+      "rarity": "rare"
+    },
+    {
+      "itemId": "voidbeast_trophy",
+      "weight": 3,
+      "rarity": "epic"
+    },
+    {
+      "itemId": "aegis_helm",
+      "weight": 2,
+      "rarity": "epic"
+    },
+    {
+      "itemId": "starfall_relic",
+      "weight": 1,
+      "rarity": "legendary"
+    },
+    {
+      "itemId": "scrap_pauldron_l",
+      "weight": 10,
+      "rarity": "common"
+    },
+    {
+      "itemId": "mag_clamp_l",
+      "weight": 10,
+      "rarity": "common"
+    },
+    {
+      "itemId": "shin_guard_r",
+      "weight": 9,
+      "rarity": "common"
+    },
+    {
+      "itemId": "magboot_l",
+      "weight": 9,
+      "rarity": "common"
+    },
+    {
+      "itemId": "magboot_r",
+      "weight": 9,
+      "rarity": "common"
+    },
+    {
+      "itemId": "signal_ring",
+      "weight": 6,
+      "rarity": "uncommon"
+    },
+    {
+      "itemId": "flux_band",
+      "weight": 6,
+      "rarity": "uncommon"
+    }
   ]
 }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- placeholder layer for slot:hand_left -->
+  <rect x="6" y="50" width="12" height="10" fill="#c05621"/>
+  <rect x="8" y="52" width="8" height="6" fill="#ed8936"/>
+  <rect x="7" y="48" width="4" height="4" fill="#fbd38d"/>
+  <rect x="2" y="2" width="3" height="3" fill="#ed8936"/>
+</svg>

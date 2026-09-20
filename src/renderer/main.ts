@@ -116,13 +116,10 @@ async function boot(): Promise<void> {
           </div>
           <span class="hp-num" data-player-hp-num hidden>—</span>
         </div>
-        <div class="battle-stage player-stage" data-player-stage>
-          <div class="battle-portrait" data-player-portrait>
-            <img src="./art/player-battle.png" alt="指挥官" draggable="false" />
-          </div>
+        <div class="doll-stage" data-doll>
           <div class="vfx-layer" data-vfx aria-hidden="true"></div>
         </div>
-        <div class="fighter-label meta">指挥官</div>
+        <div class="fighter-label meta">纸娃娃</div>
         <div class="shield-line meta" data-shield></div>
       </div>
       <div class="arena-mid idle-box">
@@ -158,8 +155,8 @@ async function boot(): Promise<void> {
           </div>
           <span class="hp-num" data-enemy-hp-num hidden>—</span>
         </div>
-        <div class="battle-stage enemy-stage" data-enemy-stage>
-          <div class="battle-portrait enemy-portrait" data-enemy-portrait aria-hidden="true"></div>
+        <div class="enemy-stage" data-enemy-stage>
+          <div class="enemy-portrait" data-enemy-portrait aria-hidden="true"></div>
           <div class="enemy-hit-flash" data-enemy-flash aria-hidden="true"></div>
         </div>
         <div class="fighter-label combat-title" data-enemy-name>等待遭遇…</div>
@@ -176,11 +173,8 @@ async function boot(): Promise<void> {
       <div class="skill-picker" data-passive-picker hidden></div>
     </div>
     <div class="equip-section no-drag">
-      <div class="section-title">装备栏 · 纸娃娃预览</div>
-      <div class="equip-with-doll">
-        <div class="doll-stage doll-preview" data-doll aria-label="装备预览"></div>
-        <div class="equip-grid" data-equip></div>
-      </div>
+      <div class="section-title">装备栏（装备/卸下立即改变对峙场纸娃娃外观）</div>
+      <div class="equip-grid" data-equip></div>
     </div>
     <div class="inv-section no-drag">
       <div class="section-title">背包（点击可装备）</div>
@@ -194,13 +188,12 @@ async function boot(): Promise<void> {
       <button type="button" class="primary" data-toggle>暂停挂机</button>
       <button type="button" data-reset>重置存档</button>
     </div>
-    <p class="hint no-drag">对峙布局：左我右敌立绘。可用「寻觅弱敌 / 寻常对手 / 寻觅强敌」调节难度与掉落。势均力敌约数分钟；日志用「轻击 / 普通 / 重击 / 破防」。主动与被动各 3 格；装备栏旁可预览纸娃娃。</p>
+    <p class="hint no-drag">对峙布局：左纸娃娃右敌方像素肖像。装备/卸下会立刻切换纸娃娃图层（含脉冲腕刃）。可用「寻觅弱敌 / 寻常对手 / 寻觅强敌」调节难度与掉落。势均力敌约数分钟；日志用「轻击 / 普通 / 重击 / 破防」。主动与被动各 3 格。</p>
   `;
   app.appendChild(panel);
 
   const els = {
     world: panel.querySelector('[data-world]') as HTMLElement,
-    playerStage: panel.querySelector('[data-player-stage]') as HTMLElement,
     doll: panel.querySelector('[data-doll]') as HTMLElement,
     vfx: panel.querySelector('[data-vfx]') as HTMLElement,
     dot: panel.querySelector('[data-dot]') as HTMLElement,
@@ -269,46 +262,13 @@ async function boot(): Promise<void> {
     }
   }
 
-  /** Anime battle 立绘 under public/art (prefer over legacy SVG portraits). */
-  const ENEMY_VOIDMITE_ART = './art/enemy-voidmite.png';
-  /** Enemies that share the voidmite battle art (tier-1 / space voids). */
-  const ENEMY_BATTLE_ART: Record<string, string> = {
-    void_mite: ENEMY_VOIDMITE_ART,
-    scrap_drone: ENEMY_VOIDMITE_ART,
-  };
-
-  function resolveArtUrl(rel: string): string {
+  /** Pixel/SVG enemy portraits under world content (anime PNGs in public/art stay unused gallery assets). */
+  function resolveEnemyPortrait(portrait: string | null, defId: string): string {
+    const rel = portrait && portrait.length > 0 ? portrait : `portraits/${defId}.svg`;
     try {
-      return new URL(rel, window.location.href).href;
+      return new URL(`${WORLD_BASE}/${rel}`, window.location.href).href;
     } catch {
-      return rel;
-    }
-  }
-
-  function resolveEnemyPortrait(_portrait: string | null, defId: string): string {
-    const mapped = ENEMY_BATTLE_ART[defId] ?? ENEMY_VOIDMITE_ART;
-    return resolveArtUrl(mapped);
-  }
-
-  function enemyPortraitTint(defId: string): string {
-    // Soft hue shifts until unique art exists; void_mite stays clean.
-    switch (defId) {
-      case 'void_mite':
-        return '';
-      case 'scrap_drone':
-        return 'hue-rotate(48deg) saturate(1.15) brightness(1.05)';
-      case 'rebel_scout':
-        return 'hue-rotate(200deg) saturate(1.05)';
-      case 'void_floater':
-        return 'hue-rotate(280deg) saturate(1.2) brightness(1.08)';
-      case 'servo_skull':
-        return 'grayscale(0.35) contrast(1.1) brightness(1.1)';
-      case 'rift_stalker':
-        return 'hue-rotate(310deg) saturate(1.25) contrast(1.05)';
-      case 'star_wraith':
-        return 'hue-rotate(160deg) saturate(1.3) brightness(1.12)';
-      default:
-        return 'hue-rotate(20deg) saturate(1.05)';
+      return `${WORLD_BASE}/${rel}`;
     }
   }
 
@@ -366,7 +326,7 @@ async function boot(): Promise<void> {
   }
 
   function pulseBodyParts(vfx: string): void {
-    // Part pulse on equip-preview doll; skill burst VFX on battle portrait.
+    // Part pulse + skill burst VFX on the combat paper-doll.
     const stage = els.doll;
     clearPartAnim(stage);
     void stage.offsetWidth;
@@ -381,7 +341,7 @@ async function boot(): Promise<void> {
   }
 
   function spawnVfxBurst(vfx: string, nameZh: string): void {
-    const stage = els.playerStage;
+    const stage = els.doll;
     stage.classList.remove(
       'vfx-playing-slash',
       'vfx-playing-heal',
@@ -445,6 +405,8 @@ async function boot(): Promise<void> {
     }
     lastDollSig = sig;
     const layers = composePaperDoll(doll, snap.equipment, content.itemsById);
+    // Keep VFX layer; only replace gear images
+    const keep = els.vfx;
     els.doll.replaceChildren();
     for (const layer of layers) {
       const img = document.createElement('img');
@@ -455,6 +417,7 @@ async function boot(): Promise<void> {
       img.src = resolveDollAsset(layer.src);
       els.doll.appendChild(img);
     }
+    els.doll.appendChild(keep);
   }
 
   function applyHpBar(
@@ -516,10 +479,9 @@ async function boot(): Promise<void> {
         img.src = src;
         img.onerror = () => {
           img.onerror = null;
-          img.src = resolveArtUrl(ENEMY_VOIDMITE_ART);
+          img.src = resolveEnemyPortrait('portraits/tier_fallback.svg', 'fallback');
         };
         els.enemyPortrait.appendChild(img);
-        els.enemyPortrait.style.filter = enemyPortraitTint(enemy.defId);
         els.enemyStage.dataset.enemyId = enemy.defId;
         els.enemyStage.classList.add('has-enemy');
       }
@@ -533,7 +495,6 @@ async function boot(): Promise<void> {
       if (lastPortraitKey !== '') {
         lastPortraitKey = '';
         els.enemyPortrait.innerHTML = '';
-        els.enemyPortrait.style.filter = '';
         delete els.enemyStage.dataset.enemyId;
         els.enemyStage.classList.remove('has-enemy', 'hit');
       }
@@ -547,7 +508,6 @@ async function boot(): Promise<void> {
       if (lastPortraitKey !== '') {
         lastPortraitKey = '';
         els.enemyPortrait.innerHTML = '';
-        els.enemyPortrait.style.filter = '';
         delete els.enemyStage.dataset.enemyId;
         els.enemyStage.classList.remove('has-enemy', 'hit');
       }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- placeholder layer for slot:shoulder_left -->
+  <rect x="8" y="24" width="14" height="12" fill="#276749"/>
+  <rect x="10" y="26" width="10" height="8" fill="#68d391"/>
+  <rect x="6" y="26" width="4" height="6" fill="#c6f6d5"/>
+  <rect x="2" y="2" width="3" height="3" fill="#68d391"/>
+</svg>

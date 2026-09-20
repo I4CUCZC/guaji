@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- placeholder layer for slot:ring_1 -->
+  <rect x="10" y="54" width="6" height="6" fill="#b83280"/>
+  <rect x="11" y="55" width="4" height="4" fill="#f687b3"/>
+  <rect x="12" y="56" width="2" height="2" fill="#fed7e2"/>
+  <rect x="2" y="2" width="3" height="3" fill="#f687b3"/>
+</svg>

@@ -1,0 +1,10 @@
+{
+  "id": "scrap_pauldron_l",
+  "name": "Scrap Pauldron (L)",
+  "nameZh": "废铁肩甲·左",
+  "rarity": "common",
+  "slot": "shoulder_left",
+  "stackable": false,
+  "description": "拼凑的左肩护板，像素色块占位，装备后立刻出现在纸娃娃左肩。",
+  "layer": "gear/ph_shoulder_left.svg"
+}

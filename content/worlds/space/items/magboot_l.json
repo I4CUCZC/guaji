@@ -1,0 +1,10 @@
+{
+  "id": "magboot_l",
+  "name": "Magboot (L)",
+  "nameZh": "磁吸靴·左",
+  "rarity": "common",
+  "slot": "foot_left",
+  "stackable": false,
+  "description": "左脚青绿磁吸靴占位图层。",
+  "layer": "gear/ph_foot_left.svg"
+}
