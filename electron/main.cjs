@@ -21,8 +21,8 @@ function createWindow() {
   const display = screen.getPrimaryDisplay();
   const { width: sw, height: sh } = display.workAreaSize;
   // Slightly larger framed panel for usable gear UI (MVP)
-  const winW = 540;
-  const winH = 720;
+  const winW = 680;
+  const winH = 820;
 
   mainWindow = new BrowserWindow({
     width: winW,
@@ -37,8 +37,8 @@ function createWindow() {
     fullscreenable: false,
     skipTaskbar: false,
     hasShadow: true,
-    minWidth: 420,
-    minHeight: 600,
+    minWidth: 480,
+    minHeight: 640,
     backgroundColor: '#00000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
