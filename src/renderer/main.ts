@@ -13,6 +13,9 @@ import {
   RARITY_LABEL_ZH,
   SPACE_ITEM_IDS,
   SKILL_BAR_SIZE,
+  fightState,
+  hpBand,
+  shieldTier,
 } from '@core/index';
 import type {
   EquipSlot,
@@ -109,18 +112,31 @@ async function boot(): Promise<void> {
           <div class="xp-bar"><div class="xp-fill" data-xp-fill></div></div>
         </div>
         <div class="combat-block">
-          <div class="combat-title" data-enemy-name>等待遭遇…</div>
+          <div class="combat-title-row">
+            <div class="combat-title" data-enemy-name>等待遭遇…</div>
+            <span class="fight-state" data-fight-state hidden></span>
+          </div>
           <div class="hp-row">
             <span class="hp-label">敌</span>
-            <div class="hp-bar enemy"><div class="hp-fill" data-enemy-hp></div></div>
-            <span class="hp-num" data-enemy-hp-num>—</span>
+            <div class="hp-bar enemy" data-enemy-bar>
+              <div class="hp-segments" aria-hidden="true"></div>
+              <div class="hp-fill" data-enemy-hp></div>
+            </div>
+            <span class="hp-num" data-enemy-hp-num hidden>—</span>
           </div>
           <div class="hp-row">
             <span class="hp-label">我</span>
-            <div class="hp-bar player"><div class="hp-fill" data-player-hp></div></div>
-            <span class="hp-num" data-player-hp-num>—</span>
+            <div class="hp-bar player" data-player-bar>
+              <div class="hp-segments" aria-hidden="true"></div>
+              <div class="hp-fill" data-player-hp></div>
+            </div>
+            <span class="hp-num" data-player-hp-num hidden>—</span>
           </div>
           <div class="shield-line meta" data-shield></div>
+          <label class="detail-toggle meta">
+            <input type="checkbox" data-detail-toggle />
+            显示详细数值
+          </label>
           <div class="combat-log" data-combat-log></div>
         </div>
       </div>
@@ -146,7 +162,7 @@ async function boot(): Promise<void> {
       <button type="button" class="primary" data-toggle>暂停挂机</button>
       <button type="button" data-reset>重置存档</button>
     </div>
-    <p class="hint no-drag">一场势均力敌的遭遇约 5 分钟。点技能栏空位打开选择器，选已解锁技能装配；点已装配技能可清空或更换。数据保存在 localStorage。</p>
+    <p class="hint no-drag">一场势均力敌的遭遇约 5 分钟。血条用颜色与格段表示状态；战斗日志用「轻击 / 扎实 / 重击 / 破防」描述手感。点技能栏空位装配技能；施放时纸娃娃对应部位先动再出特效。数据保存在 localStorage。</p>
   `;
   app.appendChild(panel);
 
@@ -161,11 +177,15 @@ async function boot(): Promise<void> {
     xpNext: panel.querySelector('[data-xp-next]') as HTMLElement,
     xpFill: panel.querySelector('[data-xp-fill]') as HTMLElement,
     enemyName: panel.querySelector('[data-enemy-name]') as HTMLElement,
+    fightState: panel.querySelector('[data-fight-state]') as HTMLElement,
+    enemyBar: panel.querySelector('[data-enemy-bar]') as HTMLElement,
     enemyHp: panel.querySelector('[data-enemy-hp]') as HTMLElement,
     enemyHpNum: panel.querySelector('[data-enemy-hp-num]') as HTMLElement,
+    playerBar: panel.querySelector('[data-player-bar]') as HTMLElement,
     playerHp: panel.querySelector('[data-player-hp]') as HTMLElement,
     playerHpNum: panel.querySelector('[data-player-hp-num]') as HTMLElement,
     shield: panel.querySelector('[data-shield]') as HTMLElement,
+    detailToggle: panel.querySelector('[data-detail-toggle]') as HTMLInputElement,
     combatLog: panel.querySelector('[data-combat-log]') as HTMLElement,
     drops: panel.querySelector('[data-drops]') as HTMLElement,
     skillBar: panel.querySelector('[data-skill-bar]') as HTMLElement,
@@ -177,6 +197,16 @@ async function boot(): Promise<void> {
   };
 
   els.world.textContent = content.world.nameZh;
+
+  const DETAIL_KEY = 'guaji-show-detail-nums';
+  let showDetailedNumbers = false;
+  try {
+    showDetailedNumbers = localStorage.getItem(DETAIL_KEY) === '1';
+  } catch {
+    /* private mode */
+  }
+  els.detailToggle.checked = showDetailedNumbers;
+  panel.classList.toggle('show-detail-nums', showDetailedNumbers);
 
   let pickSlot: number | null = null;
   let lastSkillSig = '';
@@ -194,7 +224,51 @@ async function boot(): Promise<void> {
     }
   }
 
-  function playVfx(vfx: string, nameZh: string): void {
+  const PART_ANIM: Record<string, string[]> = {
+    slash: ['arm_left', 'arm_right', 'weapon'],
+    heal: ['body'],
+    shield: ['accessory', 'arm_left', 'arm_right', 'head'],
+    acid: ['head', 'accessory'],
+  };
+
+  let vfxClearTimer = 0;
+  let partAnimTimer = 0;
+
+  function layerPartKind(src: string, kind: string): string {
+    if (kind && kind !== 'base') return kind;
+    const m = src.match(
+      /(?:^|\/)(body|legs|arm_left|arm_right|head|weapon|accessory)(?:[_./]|$)/,
+    );
+    return m?.[1] ?? 'body';
+  }
+
+  function clearPartAnim(stage: HTMLElement): void {
+    stage.classList.remove(
+      'part-anim-slash',
+      'part-anim-heal',
+      'part-anim-shield',
+      'part-anim-acid',
+    );
+    for (const img of stage.querySelectorAll('img.layer.part-active')) {
+      img.classList.remove('part-active');
+    }
+  }
+
+  function pulseBodyParts(vfx: string): void {
+    const stage = els.doll;
+    clearPartAnim(stage);
+    void stage.offsetWidth;
+    stage.classList.add(`part-anim-${vfx}`);
+    const parts = PART_ANIM[vfx] ?? [];
+    for (const img of stage.querySelectorAll('img.layer')) {
+      const part = (img as HTMLElement).dataset.part;
+      if (part && parts.includes(part)) {
+        img.classList.add('part-active');
+      }
+    }
+  }
+
+  function spawnVfxBurst(vfx: string, nameZh: string): void {
     const stage = els.doll;
     stage.classList.remove(
       'vfx-playing-slash',
@@ -202,7 +276,6 @@ async function boot(): Promise<void> {
       'vfx-playing-shield',
       'vfx-playing-acid',
     );
-    // force reflow so re-trigger works
     void stage.offsetWidth;
     stage.classList.add(`vfx-playing-${vfx}`);
 
@@ -227,13 +300,30 @@ async function boot(): Promise<void> {
       const ring = document.createElement('div');
       ring.className = 'vfx-heal-ring';
       burst.appendChild(ring);
+    } else if (vfx === 'shield') {
+      const shimmer = document.createElement('div');
+      shimmer.className = 'vfx-shield-shimmer';
+      burst.appendChild(shimmer);
     }
     els.vfx.appendChild(burst);
 
-    window.setTimeout(() => {
+    window.clearTimeout(vfxClearTimer);
+    vfxClearTimer = window.setTimeout(() => {
       stage.classList.remove(`vfx-playing-${vfx}`);
+      clearPartAnim(stage);
       if (els.vfx.contains(burst)) burst.remove();
-    }, 700);
+    }, 780);
+  }
+
+  /** Animate relevant doll parts first, then play VFX. */
+  function playVfx(vfx: string, nameZh: string): void {
+    window.clearTimeout(partAnimTimer);
+    window.clearTimeout(vfxClearTimer);
+    pulseBodyParts(vfx);
+    // Body motion leads (~180ms), then energy / pulse / spray VFX
+    partAnimTimer = window.setTimeout(() => {
+      spawnVfxBurst(vfx, nameZh);
+    }, 180);
   }
 
   function renderDoll(snap: GameSnapshot): void {
@@ -251,10 +341,33 @@ async function boot(): Promise<void> {
       img.className = 'layer';
       img.alt = '';
       img.draggable = false;
+      img.dataset.part = layerPartKind(layer.src, layer.kind);
       img.src = resolveDollAsset(layer.src);
       els.doll.appendChild(img);
     }
     els.doll.appendChild(keep);
+  }
+
+  function applyHpBar(
+    fill: HTMLElement,
+    bar: HTMLElement,
+    numEl: HTMLElement,
+    cur: number,
+    max: number,
+    emptyLabel: string,
+  ): void {
+    const pct = hpPct(cur, max);
+    fill.style.width = `${pct}%`;
+    const band = hpBand(pct);
+    bar.dataset.band = band;
+    fill.dataset.band = band;
+    if (showDetailedNumbers && max > 0) {
+      numEl.hidden = false;
+      numEl.textContent = `${cur}/${max}`;
+    } else {
+      numEl.hidden = true;
+      numEl.textContent = emptyLabel;
+    }
   }
 
   function renderCombat(snap: GameSnapshot): void {
@@ -262,22 +375,54 @@ async function boot(): Promise<void> {
     const enemy = c.enemy;
     if (c.phase === 'fighting' && enemy) {
       els.enemyName.textContent = `遭遇了${enemy.nameZh}`;
-      els.enemyHp.style.width = `${hpPct(enemy.hp, enemy.maxHp)}%`;
-      els.enemyHpNum.textContent = `${enemy.hp}/${enemy.maxHp}`;
+      applyHpBar(
+        els.enemyHp,
+        els.enemyBar,
+        els.enemyHpNum,
+        enemy.hp,
+        enemy.maxHp,
+        '—',
+      );
+      const state = fightState(
+        c.playerHp,
+        c.playerMaxHp,
+        enemy.hp,
+        enemy.maxHp,
+      );
+      els.fightState.hidden = false;
+      els.fightState.textContent = state;
+      els.fightState.dataset.state = state;
     } else if (c.phase === 'breather') {
       els.enemyName.textContent = '喘息中…下一场即将开始';
-      els.enemyHp.style.width = '0%';
-      els.enemyHpNum.textContent = '—';
+      applyHpBar(els.enemyHp, els.enemyBar, els.enemyHpNum, 0, 0, '—');
+      els.fightState.hidden = true;
+      els.fightState.textContent = '';
+      delete els.fightState.dataset.state;
     } else {
       els.enemyName.textContent = '已暂停';
-      els.enemyHp.style.width = '0%';
-      els.enemyHpNum.textContent = '—';
+      applyHpBar(els.enemyHp, els.enemyBar, els.enemyHpNum, 0, 0, '—');
+      els.fightState.hidden = true;
+      els.fightState.textContent = '';
+      delete els.fightState.dataset.state;
     }
 
-    els.playerHp.style.width = `${hpPct(c.playerHp, c.playerMaxHp)}%`;
-    els.playerHpNum.textContent = `${c.playerHp}/${c.playerMaxHp}`;
-    els.shield.textContent =
-      c.playerShield > 0 ? `护盾 ${c.playerShield}` : '';
+    applyHpBar(
+      els.playerHp,
+      els.playerBar,
+      els.playerHpNum,
+      c.playerHp,
+      c.playerMaxHp,
+      '—',
+    );
+
+    if (c.playerShield > 0) {
+      const tier = shieldTier(c.playerShield, c.playerMaxHp);
+      els.shield.textContent = showDetailedNumbers
+        ? `护盾 ${c.playerShield}（${tier}）`
+        : `${tier}护体中`;
+    } else {
+      els.shield.textContent = '';
+    }
 
     const logSig = c.log.map((l) => l.text).join('\n');
     if (logSig !== lastLogSig) {
@@ -673,6 +818,17 @@ async function boot(): Promise<void> {
     lastSkillSig = '';
     renderSkillBar(engine.getSnapshot(), true);
     renderSkillPicker(engine.getSnapshot());
+  });
+
+  els.detailToggle.addEventListener('change', () => {
+    showDetailedNumbers = els.detailToggle.checked;
+    panel.classList.toggle('show-detail-nums', showDetailedNumbers);
+    try {
+      localStorage.setItem(DETAIL_KEY, showDetailedNumbers ? '1' : '0');
+    } catch {
+      /* */
+    }
+    renderCombat(engine.getSnapshot());
   });
 
   engine.subscribe((snap, tick) => renderAll(snap, tick));

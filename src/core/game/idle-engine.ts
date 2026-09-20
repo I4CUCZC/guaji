@@ -26,6 +26,13 @@ import {
   getAvailableSkills,
   sanitizeSkillBar,
 } from './skills';
+import {
+  formatDamageInLog,
+  formatDamageOutLog,
+  formatSkillDamageLog,
+  formatSkillHealLog,
+  formatSkillShieldLog,
+} from './soft-combat';
 
 export type IdleListener = (snap: GameSnapshot, tick: TickResult | null) => void;
 
@@ -298,7 +305,10 @@ export class IdleEngine {
     if (this.playerAtkCd <= 0 && this.enemy.hp > 0) {
       const dmg = this.playerAttackPower();
       this.enemy.hp = Math.max(0, this.enemy.hp - dmg);
-      this.pushLog(`你对${this.enemy.nameZh}造成 ${dmg} 伤害`, 'damage_out');
+      this.pushLog(
+        formatDamageOutLog(this.enemy.nameZh, dmg, this.enemy.maxHp, false),
+        'damage_out',
+      );
       this.playerAtkCd = this.enemiesPack.playerAttackIntervalMs;
     }
 
@@ -316,9 +326,14 @@ export class IdleEngine {
       }
       const dmg = raw - absorbed;
       this.playerHp = Math.max(0, this.playerHp - dmg);
-      const shieldNote = absorbed > 0 ? `（护盾抵消 ${absorbed}）` : '';
       this.pushLog(
-        `${this.enemy.nameZh}击中你 ${dmg}${shieldNote}`,
+        formatDamageInLog(
+          this.enemy.nameZh,
+          dmg,
+          this.playerMaxHp,
+          absorbed,
+          false,
+        ),
         'damage_in',
       );
       this.enemyAtkCd = this.enemy.attackIntervalMs;
@@ -367,19 +382,34 @@ export class IdleEngine {
     if (effect.type === 'damage' && this.enemy) {
       this.enemy.hp = Math.max(0, this.enemy.hp - effect.amount);
       this.pushLog(
-        `【${skill.nameZh}】对${this.enemy.nameZh}造成 ${effect.amount} 伤害`,
+        formatSkillDamageLog(
+          skill.nameZh,
+          this.enemy.nameZh,
+          effect.amount,
+          this.enemy.maxHp,
+          false,
+        ),
         'skill',
       );
     } else if (effect.type === 'heal') {
       const before = this.playerHp;
       this.playerHp = Math.min(this.playerMaxHp, this.playerHp + effect.amount);
+      const healed = this.playerHp - before;
       this.pushLog(
-        `【${skill.nameZh}】回复 ${this.playerHp - before} 生命`,
+        formatSkillHealLog(skill.nameZh, healed, this.playerMaxHp, false),
         'skill',
       );
     } else if (effect.type === 'shield') {
       this.playerShield += effect.amount;
-      this.pushLog(`【${skill.nameZh}】获得 ${effect.amount} 护盾`, 'skill');
+      this.pushLog(
+        formatSkillShieldLog(
+          skill.nameZh,
+          effect.amount,
+          this.playerMaxHp,
+          false,
+        ),
+        'skill',
+      );
     }
     this.cooldownRemaining[skill.id] = skill.cooldownMs;
     this.vfxSeq += 1;
