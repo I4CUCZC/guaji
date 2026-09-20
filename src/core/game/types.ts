@@ -180,12 +180,25 @@ export interface PaperDollDef {
   baseLayers: Partial<Record<EquipSlot | 'body' | 'legs', string>>;
 }
 
+/** Equipped or inventory gear instance — enhance persists per copy. */
+export interface GearInstance {
+  itemId: string;
+  /** 0..9 enhance level */
+  enhanceLevel: number;
+}
+
+/**
+ * Inventory row.
+ * Stackable junk: qty aggregates, enhanceLevel ignored.
+ * Non-stackable gear: typically qty 1 with its own enhanceLevel.
+ */
 export interface InventoryEntry {
   itemId: string;
   qty: number;
+  enhanceLevel?: number;
 }
 
-export type EquipmentMap = Partial<Record<EquipSlot, string>>;
+export type EquipmentMap = Partial<Record<EquipSlot, GearInstance>>;
 
 /** Exactly 3 slots; null = empty. Used independently by active and passive bars. */
 export type SkillBarLoadout = [string | null, string | null, string | null];
@@ -200,7 +213,8 @@ export const SEEK_MODE_LABEL_ZH: Record<SeekMode, string> = {
 };
 
 export interface SaveData {
-  version: 1 | 2;
+  /** 3 = fragments + enhance instances */
+  version: 1 | 2 | 3;
   worldId: string;
   level: number;
   xp: number;
@@ -214,6 +228,10 @@ export interface SaveData {
   passiveSkillBar: SkillBarLoadout;
   /** Encounter difficulty preference */
   seekMode: SeekMode;
+  /** Per-world fragment currency for shop pulls */
+  worldFragments: Record<string, number>;
+  /** Consecutive enhance fails (soft pity) */
+  enhanceFailStreak: number;
 }
 
 export type CombatPhase = 'breather' | 'fighting' | 'paused';
@@ -253,7 +271,6 @@ export interface SkillVfxEvent {
 }
 
 export interface CombatView {
-
   phase: CombatPhase;
   enemy: EnemyInstance | null;
   playerHp: number;
@@ -303,4 +320,7 @@ export interface GameSnapshot {
   passiveSkillBar: SkillBarLoadout;
   availablePassiveSkills: SkillDef[];
   seekMode: SeekMode;
+  /** Fragments for the current world */
+  fragments: number;
+  enhanceFailStreak: number;
 }

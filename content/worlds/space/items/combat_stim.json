@@ -1,0 +1,18 @@
+{
+  "id": "combat_stim",
+  "name": "Combat Stim Injector",
+  "nameZh": "战地兴奋剂",
+  "rarity": "uncommon",
+  "slot": "ring_1",
+  "stackable": false,
+  "description": "指环式微量注入器。按下之后视野变尖、心跳变响——星际陆战队在冲锋前常来一支，副作用写在没人读的说明书上。",
+  "layer": "gear/ph_ring_1.svg",
+  "passiveSkill": {
+    "id": "passive_stim_rush",
+    "name": "Stim Rush",
+    "nameZh": "兴奋催动",
+    "kind": "passive",
+    "description": "肾上腺素峰值轻微提高输出伤害。",
+    "effect": { "type": "damageAmp", "amount": 0.08 }
+  }
+}

@@ -5,29 +5,23 @@
   "rarity": "uncommon",
   "slot": "waist",
   "stackable": false,
-  "description": "轻量化复合板甲，挂机时也显得很正式。",
+  "description": "多层复合板甲，前线步兵的标配。不像动力甲那样会低语祈祷，但足以挡住大多数弹片与酸雾。",
   "layer": "gear/body_carapace.svg",
   "skill": {
     "id": "skill_plate_brace",
     "name": "Plate Brace",
     "nameZh": "板甲撑持",
-    "description": "回复少量生命。",
+    "kind": "active",
+    "description": "锁死关节、绷紧甲片，短暂稳住伤势。",
     "cooldownMs": 14000,
-    "effect": {
-      "type": "heal",
-      "amount": 28
-    },
-    "kind": "active"
+    "effect": { "type": "heal", "amount": 28 }
   },
   "passiveSkill": {
     "id": "passive_carapace_shell",
     "name": "Carapace Shell",
     "nameZh": "甲壳护体",
-    "description": "略微减免受到的伤害。",
     "kind": "passive",
-    "effect": {
-      "type": "damageReduction",
-      "amount": 0.08
-    }
+    "description": "甲片分散冲击，略微减免受到的伤害。",
+    "effect": { "type": "damageReduction", "amount": 0.08 }
   }
 }

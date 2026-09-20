@@ -1,22 +1,19 @@
 {
   "id": "power_gauntlet_r",
-  "name": "Void Servo Gauntlet (R)",
-  "nameZh": "虚空伺服臂甲·右",
+  "name": "Servo Power Gauntlet (R)",
+  "nameZh": "伺服动力臂甲·右",
   "rarity": "rare",
   "slot": "arm_right",
   "stackable": false,
-  "description": "伺服增幅的动力臂甲，右臂版。",
+  "description": "与左侧成对的动力臂甲。右拳蓄力时液压管会亮起凶恶的琥珀光。",
   "layer": "gear/arm_right_power.svg",
   "skill": {
     "id": "skill_servo_punch",
     "name": "Servo Punch",
     "nameZh": "伺服重拳",
-    "description": "追加一次重击伤害。",
+    "kind": "active",
+    "description": "液压助推的一记重击。",
     "cooldownMs": 11000,
-    "effect": {
-      "type": "damage",
-      "amount": 22
-    },
-    "kind": "active"
+    "effect": { "type": "damage", "amount": 22 }
   }
 }

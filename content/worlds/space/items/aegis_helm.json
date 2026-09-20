@@ -5,29 +5,23 @@
   "rarity": "epic",
   "slot": "head",
   "stackable": false,
-  "description": "厚重面罩与护目透镜，灵感来自传说中的星际骑士。",
+  "description": "厚重面罩与护目透镜。传说中星际骑士在穿戴时会默念守护祷词——你只需要记得把密封圈拧紧。",
   "layer": "gear/head_aegis_helm.svg",
   "skill": {
     "id": "skill_aegis_barrier",
     "name": "Aegis Barrier",
     "nameZh": "神盾屏障",
-    "description": "生成护盾，抵挡接下来的伤害。",
+    "kind": "active",
+    "description": "展开短促力场屏障，抵挡接下来的伤害。",
     "cooldownMs": 18000,
-    "effect": {
-      "type": "shield",
-      "amount": 55
-    },
-    "kind": "active"
+    "effect": { "type": "shield", "amount": 55 }
   },
   "passiveSkill": {
     "id": "passive_aegis_plate",
     "name": "Aegis Plate",
     "nameZh": "神盾覆层",
-    "description": "持续减免部分伤害。",
     "kind": "passive",
-    "effect": {
-      "type": "damageReduction",
-      "amount": 0.06
-    }
+    "description": "头盔力场余韵持续减免部分伤害。",
+    "effect": { "type": "damageReduction", "amount": 0.06 }
   }
 }

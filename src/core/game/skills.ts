@@ -41,9 +41,9 @@ function collectSkills(
 ): SkillDef[] {
   const out: SkillDef[] = [];
   const seen = new Set<string>();
-  for (const itemId of Object.values(equipment)) {
-    if (!itemId) continue;
-    const item = itemsById.get(itemId);
+  for (const gear of Object.values(equipment)) {
+    if (!gear?.itemId) continue;
+    const item = itemsById.get(gear.itemId);
     if (!item) continue;
     const resolved = pick(item);
     if (!resolved || seen.has(resolved.id)) continue;

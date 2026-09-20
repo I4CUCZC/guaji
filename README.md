@@ -15,7 +15,7 @@ Transparent desktop idle companion with a data-driven space-world gear grind.
 2. **对峙遭遇（柔和数值）：** 左纸娃娃 / 右敌方像素肖像，双方血条在角色上方。日志用「轻击 / 普通 / 重击 / 破防」，战况「压制 / 胶着 / 苦战」。**寻觅弱敌 / 寻常对手 / 寻觅强敌**可切换难度与掉落（存档记忆）。新手可稳定击败前几场；势均力敌仍约数分钟。战败后回满生命并继续当前寻觅模式。
 3. **主动 3 格 + 被动 3 格：** 装备可定义主动 `skill`（`kind: active`）或 `passiveSkill` / `skill.kind: "passive"`。两栏各自点空位装配、点已装清空重选。主动在战斗中自动释放并播部位特效；被动持续生效（伤害增幅 / 缓慢回血 / 减伤），无施放冷却。
 4. **稀有度：** 普通 / 优良 / 稀有 / 史诗 / 传说，UI 按颜色显示。
-5. **原创风味装备名：** 如「脉冲光刃」「虚空伺服臂甲」「虚空兽头骨」等（JSON 定义，致敬风格但不抄袭可识别 IP）。
+5. **Lore-first 装备：** 星际世界致敬星际争霸 / 战锤40K / 异形气质（中文贡品名 OK），去掉纯凑槽占位件；槽位数量不必齐。另有 **碎片商店抽取**、**分解**、**强化 +0～+9**。
 6. **15 部位装备：** 头部、颈部、左右肩、左右臂、左右手、两枚戒指、腰部、左右腿、左右脚。旧存档映射：body→腰部、legs→左腿、weapon→右手、accessory→颈部（虚空兽头骨→右肩）。
 7. **像素纸娃娃：** 多层 SVG。脉冲腕刃从**双腕发射器**伸出能量刃（非手持握剑）；虚空兽头骨为拉长圆顶 + 肋管 + 下颚须的原创异星轮廓。装备切换图层清晰可见。
 8. **存档：** 等级、XP、背包、装备、主动栏、被动栏、寻觅模式 → `localStorage`。
@@ -27,17 +27,14 @@ Transparent desktop idle companion with a data-driven space-world gear grind.
 | 装备物品 | 槽位 | 出现的图层 | 卸下后 |
 |---------|------|-----------|--------|
 | `pulse_blade` 脉冲腕刃 | `hand_right` | `gear/weapon_pulse_blade.svg`（双腕能量刃） | 刃消失 |
-| `aegis_helm` / `void_goggles` | `head` | `gear/head_aegis_helm.svg` / `gear/head_void_goggles.svg` | 头盔/护目镜消失 |
-| `carapace_torso` 甲壳胸甲 | `waist` | `gear/body_carapace.svg` | 胸甲消失 |
+| `aegis_helm` 神盾式战盔 | `head` | `gear/head_aegis_helm.svg` | 头盔消失 |
+| `carapace_torso` 甲壳式胸甲 | `waist` | `gear/body_carapace.svg` | 胸甲消失 |
 | `power_gauntlet_l` / `_r` | `arm_left` / `arm_right` | `gear/arm_*_power.svg` | 臂甲消失 |
-| `voidbeast_trophy` | `shoulder_right` | `gear/accessory_voidbeast_trophy.svg` | 头骨消失 |
-| `starfall_relic` | `neck` | `gear/accessory_starfall.svg` | 圣物消失 |
-| `greaves_voidwalker` | `leg_left` | `gear/legs_voidwalker.svg` | 护胫消失 |
-| `scrap_pauldron_l` | `shoulder_left` | `gear/ph_shoulder_left.svg`（绿彩占位） | 色块消失 |
-| `mag_clamp_l` | `hand_left` | `gear/ph_hand_left.svg` | 色块消失 |
-| `signal_ring` / `flux_band` | `ring_1` / `ring_2` | `gear/ph_ring_*.svg` | 色块消失 |
-| `shin_guard_r` | `leg_right` | `gear/ph_leg_right.svg` | 色块消失 |
-| `magboot_l` / `magboot_r` | `foot_left` / `foot_right` | `gear/ph_foot_*.svg` | 色块消失 |
+| `voidbeast_trophy` 异星战利头骨 | `shoulder_right` | `gear/accessory_voidbeast_trophy.svg` | 头骨消失 |
+| `acid_gland` 异种酸腺 | `shoulder_left` | `gear/ph_shoulder_left.svg` | 色块消失 |
+| `starfall_relic` 亚空间裂片圣物 | `neck` | `gear/accessory_starfall.svg` | 圣物消失 |
+| `greaves_voidwalker` 磁锁护胫 | `leg_left` | `gear/legs_voidwalker.svg` | 护胫消失 |
+| `combat_stim` 战地兴奋剂 | `ring_1` | `gear/ph_ring_1.svg` | 色块消失 |
 
 **操作：** 战斗掉落或背包里点击装备 → 对峙场纸娃娃对应部位立刻出现图层；再点装备栏该槽卸下 → 图层立刻消失。15 个槽均有图层（精美 SVG 或鲜明彩色像素占位）。
 

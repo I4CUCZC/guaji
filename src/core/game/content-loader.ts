@@ -59,24 +59,21 @@ export async function loadPaperDoll(url: string): Promise<PaperDollDef> {
   return fetchJson<PaperDollDef>(url);
 }
 
-/** Known space-world item ids. Keep in sync with content files. */
+/**
+ * Known space-world item ids (lore-first set).
+ * Slot counts are intentionally unequal — no filler pad pieces.
+ */
 export const SPACE_ITEM_IDS = [
   'scrap_plasteel',
   'power_cell',
-  'void_goggles',
   'carapace_torso',
   'greaves_voidwalker',
+  'combat_stim',
   'power_gauntlet_l',
   'power_gauntlet_r',
   'pulse_blade',
+  'acid_gland',
   'voidbeast_trophy',
   'aegis_helm',
   'starfall_relic',
-  'scrap_pauldron_l',
-  'mag_clamp_l',
-  'signal_ring',
-  'flux_band',
-  'shin_guard_r',
-  'magboot_l',
-  'magboot_r',
 ] as const;

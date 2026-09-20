@@ -45,15 +45,15 @@ export function composePaperDoll(
   for (const entry of def.layerOrder) {
     if (entry.startsWith('slot:')) {
       const slot = entry.slice(5) as EquipSlot;
-      const itemId = equipment[slot];
-      if (!itemId) continue;
-      const item = itemsById.get(itemId);
+      const gear = equipment[slot];
+      if (!gear?.itemId) continue;
+      const item = itemsById.get(gear.itemId);
       const rawLayer = item?.layer ?? SLOT_PLACEHOLDER_LAYER[slot];
       const src = normalizeLayerSrc(rawLayer);
       layers.push({
         src,
         kind: String(slot),
-        itemId,
+        itemId: gear.itemId,
       });
     } else {
       // Base path like "base/body.svg"

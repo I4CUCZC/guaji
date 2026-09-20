@@ -30,7 +30,7 @@
           "rarity": "common"
         },
         {
-          "itemId": "void_goggles",
+          "itemId": "combat_stim",
           "weight": 8,
           "rarity": "uncommon"
         },
@@ -74,7 +74,7 @@
           "rarity": "uncommon"
         },
         {
-          "itemId": "void_goggles",
+          "itemId": "combat_stim",
           "weight": 6,
           "rarity": "uncommon"
         }
@@ -108,7 +108,7 @@
           "rarity": "common"
         },
         {
-          "itemId": "void_goggles",
+          "itemId": "combat_stim",
           "weight": 16,
           "rarity": "uncommon"
         },
@@ -167,7 +167,7 @@
           "rarity": "uncommon"
         },
         {
-          "itemId": "void_goggles",
+          "itemId": "combat_stim",
           "weight": 12,
           "rarity": "uncommon"
         },
@@ -190,6 +190,11 @@
           "itemId": "voidbeast_trophy",
           "weight": 2,
           "rarity": "epic"
+        },
+        {
+          "itemId": "acid_gland",
+          "weight": 6,
+          "rarity": "rare"
         }
       ],
       "portrait": "portraits/void_floater.svg"
@@ -254,6 +259,11 @@
           "itemId": "voidbeast_trophy",
           "weight": 4,
           "rarity": "epic"
+        },
+        {
+          "itemId": "acid_gland",
+          "weight": 12,
+          "rarity": "rare"
         }
       ],
       "portrait": "portraits/servo_skull.svg"
@@ -280,7 +290,7 @@
           "rarity": "common"
         },
         {
-          "itemId": "void_goggles",
+          "itemId": "combat_stim",
           "weight": 10,
           "rarity": "uncommon"
         },
@@ -313,6 +323,11 @@
           "itemId": "starfall_relic",
           "weight": 4,
           "rarity": "legendary"
+        },
+        {
+          "itemId": "acid_gland",
+          "weight": 14,
+          "rarity": "rare"
         }
       ],
       "portrait": "portraits/rift_stalker.svg"
@@ -372,6 +387,11 @@
           "itemId": "power_cell",
           "weight": 10,
           "rarity": "common"
+        },
+        {
+          "itemId": "acid_gland",
+          "weight": 12,
+          "rarity": "rare"
         }
       ],
       "portrait": "portraits/star_wraith.svg"

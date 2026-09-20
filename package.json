@@ -1,7 +1,7 @@
 {
   "name": "guaji-desktop-pet",
-  "version": "1.3.0",
-  "description": "Desktop idle companion + space-world encounter combat + skills MVP (Vite + TS + thin Electron)",
+  "version": "1.4.0",
+  "description": "Desktop idle companion + space lore loot + shop/salvage/enhance (Vite + TS + thin Electron)",
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",

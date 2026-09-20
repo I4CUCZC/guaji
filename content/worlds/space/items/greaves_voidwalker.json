@@ -1,22 +1,18 @@
 {
   "id": "greaves_voidwalker",
-  "name": "Voidwalker Greaves",
-  "nameZh": "虚空行者护胫",
+  "name": "Mag-Lock Greaves",
+  "nameZh": "磁锁护胫",
   "rarity": "uncommon",
   "slot": "leg_left",
   "stackable": false,
-  "description": "磁吸靴底，适合在舰桥上踱步挂机。",
+  "description": "舰桥与船体外侧通用的磁锁靴胫甲。失重时咬住甲板，重力恢复时又像钉死在大地上的巡礼者。",
   "layer": "gear/legs_voidwalker.svg",
   "passiveSkill": {
     "id": "passive_void_stride",
-    "name": "Void Stride",
-    "nameZh": "虚空步伐",
-    "description": "战斗中缓慢回复生命。",
+    "name": "Mag Stride",
+    "nameZh": "磁锁步伐",
     "kind": "passive",
-    "effect": {
-      "type": "regen",
-      "amount": 4,
-      "intervalMs": 5000
-    }
+    "description": "稳固步伐带来的余裕，战斗中缓慢回复生命。",
+    "effect": { "type": "regen", "amount": 4, "intervalMs": 5000 }
   }
 }

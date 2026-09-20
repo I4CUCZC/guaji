@@ -6,8 +6,10 @@ import type {
   EnemiesPack,
   EnemyDef,
   EnemyInstance,
+  EquipSlot,
   GameSnapshot,
   ItemDef,
+  Rarity,
   SaveData,
   SeekMode,
   SkillDef,
@@ -15,11 +17,24 @@ import type {
   TickResult,
   WorldDef,
 } from './types';
-import { SKILL_BAR_SIZE } from './types';
+import { EQUIP_SLOTS, RARITY_ORDER, SKILL_BAR_SIZE } from './types';
 import { rollLoot, rollWeighted } from './loot-roller';
-import { addItem } from './inventory';
+import {
+  addItem,
+  removeAt,
+  setEquippedEnhance,
+  setInventoryEnhance,
+} from './inventory';
 import { applyXp, randomInt, xpRequiredForLevel } from './xp';
 import { writeSave } from './save';
+import {
+  ENHANCE_CAP,
+  enhancePowerMul,
+  enhanceSuccessChance,
+  salvageYield,
+  shopPoolForRarity,
+  shopPullCost,
+} from './economy';
 import {
   assignPassiveSkillToBar,
   assignSkillToBar,
@@ -107,7 +122,17 @@ export class IdleEngine {
     this.dropTable = opts.dropTable;
     this.enemiesPack = opts.enemiesPack;
     this.itemsById = opts.itemsById;
-    this.save = { ...opts.save, worldId: opts.world.id };
+    this.save = {
+      ...opts.save,
+      worldId: opts.world.id,
+      worldFragments: {
+        ...(opts.save.worldFragments ?? {}),
+      },
+      enhanceFailStreak: opts.save.enhanceFailStreak ?? 0,
+    };
+    if (this.save.worldFragments[opts.world.id] == null) {
+      this.save.worldFragments[opts.world.id] = 0;
+    }
     this.rng = opts.rng ?? Math.random;
     this.persist = opts.persist !== false;
 
@@ -184,21 +209,53 @@ export class IdleEngine {
     return 240 + level * 50;
   }
 
+  private gearAtkContribution(slot: EquipSlot, divisor = 1): number {
+    const gear = this.save.equipment[slot];
+    if (!gear) return 0;
+    const item = this.itemsById.get(gear.itemId);
+    if (!item) return 0;
+    const base = RARITY_ATK[item.rarity] ?? 1;
+    const raw = divisor > 1 ? Math.max(1, Math.floor(base / divisor)) : base;
+    return Math.max(1, Math.round(raw * enhancePowerMul(gear.enhanceLevel)));
+  }
+
   private playerAttackPower(): number {
     let atk = 9 + Math.floor(this.save.level * 2);
     for (const slot of ['hand_left', 'hand_right'] as const) {
-      const id = this.save.equipment[slot];
-      if (!id) continue;
-      const item = this.itemsById.get(id);
-      if (item) atk += RARITY_ATK[item.rarity] ?? 2;
+      atk += this.gearAtkContribution(slot, 1);
     }
     for (const slot of ['arm_left', 'arm_right'] as const) {
-      const id = this.save.equipment[slot];
-      if (!id) continue;
-      const item = this.itemsById.get(id);
-      if (item) atk += Math.max(1, Math.floor((RARITY_ATK[item.rarity] ?? 1) / 2));
+      atk += this.gearAtkContribution(slot, 2);
     }
     return atk;
+  }
+
+  private enhanceMulForSkill(skillId: string): number {
+    for (const slot of EQUIP_SLOTS) {
+      const gear = this.save.equipment[slot];
+      if (!gear) continue;
+      const item = this.itemsById.get(gear.itemId);
+      if (!item) continue;
+      const active = item.skill && (item.skill.kind ?? 'active') === 'active';
+      if (active && item.skill?.id === skillId) {
+        return enhancePowerMul(gear.enhanceLevel);
+      }
+    }
+    return 1;
+  }
+
+  getFragments(worldId = this.world.id): number {
+    return this.save.worldFragments?.[worldId] ?? 0;
+  }
+
+  private setFragments(amount: number, worldId = this.world.id): void {
+    const next = { ...(this.save.worldFragments ?? {}) };
+    next[worldId] = Math.max(0, Math.floor(amount));
+    this.save.worldFragments = next;
+  }
+
+  private addFragments(delta: number, worldId = this.world.id): void {
+    this.setFragments(this.getFragments(worldId) + delta, worldId);
   }
 
   private resetPlayerVitals(full = false): void {
@@ -216,7 +273,7 @@ export class IdleEngine {
   }
 
   private vfxForSkill(skill: SkillDef): SkillVfxEvent['vfx'] {
-    if (skill.id === 'skill_void_howl') return 'acid';
+    if (skill.id === 'skill_void_howl' || skill.id === 'skill_acid_spit') return 'acid';
     if (skill.effect.type === 'heal') return 'heal';
     if (skill.effect.type === 'shield') return 'shield';
     return 'slash';
@@ -263,6 +320,8 @@ export class IdleEngine {
       passiveSkillBar: this.save.passiveSkillBar ?? [null, null, null],
       availablePassiveSkills: passives,
       seekMode: this.save.seekMode ?? 'balanced',
+      fragments: this.getFragments(),
+      enhanceFailStreak: this.save.enhanceFailStreak ?? 0,
     };
   }
 
@@ -537,7 +596,11 @@ export class IdleEngine {
   private applySkill(skill: SkillDef): void {
     const { effect } = skill;
     if (effect.type === 'damage' && this.enemy) {
-      const amount = this.outgoingDamage(effect.amount);
+      const scaled = Math.max(
+        1,
+        Math.round(effect.amount * this.enhanceMulForSkill(skill.id)),
+      );
+      const amount = this.outgoingDamage(scaled);
       this.enemy.hp = Math.max(0, this.enemy.hp - amount);
       this.noteEnemyHit();
       this.pushLog(
@@ -552,18 +615,26 @@ export class IdleEngine {
       );
     } else if (effect.type === 'heal') {
       const before = this.playerHp;
-      this.playerHp = Math.min(this.playerMaxHp, this.playerHp + effect.amount);
+      const healAmt = Math.max(
+        1,
+        Math.round(effect.amount * this.enhanceMulForSkill(skill.id)),
+      );
+      this.playerHp = Math.min(this.playerMaxHp, this.playerHp + healAmt);
       const healed = this.playerHp - before;
       this.pushLog(
         formatSkillHealLog(skill.nameZh, healed, this.playerMaxHp, false),
         'skill',
       );
     } else if (effect.type === 'shield') {
-      this.playerShield += effect.amount;
+      const shieldAmt = Math.max(
+        1,
+        Math.round(effect.amount * this.enhanceMulForSkill(skill.id)),
+      );
+      this.playerShield += shieldAmt;
       this.pushLog(
         formatSkillShieldLog(
           skill.nameZh,
-          effect.amount,
+          shieldAmt,
           this.playerMaxHp,
           false,
         ),
@@ -682,5 +753,150 @@ export class IdleEngine {
 
   getItemsById(): Map<string, ItemDef> {
     return this.itemsById;
+  }
+
+  /** Salvage one inventory row into world fragments. */
+  salvageInventoryAt(index: number): { ok: boolean; fragments: number; nameZh?: string } {
+    const row = this.save.inventory[index];
+    if (!row) return { ok: false, fragments: 0 };
+    const item = this.itemsById.get(row.itemId);
+    if (!item) return { ok: false, fragments: 0 };
+    const gained = salvageYield(item) * (item.stackable ? 1 : 1);
+    // For stackable, salvage 1 qty; for gear, remove the row
+    this.save.inventory = removeAt(this.save.inventory, index);
+    this.addFragments(gained);
+    this.pushLog(`分解 ${item.nameZh} → +${gained} 碎片`, 'system');
+    if (this.persist) writeSave(this.save);
+    this.emit(null);
+    return { ok: true, fragments: gained, nameZh: item.nameZh };
+  }
+
+  /** Shop pull: spend fragments for a random equippable of target rarity. */
+  shopPull(rarity: Rarity): {
+    ok: boolean;
+    reason?: string;
+    item?: ItemDef;
+    cost?: number;
+  } {
+    if (!RARITY_ORDER.includes(rarity)) {
+      return { ok: false, reason: '无效稀有度' };
+    }
+    const cost = shopPullCost(rarity);
+    if (this.getFragments() < cost) {
+      return { ok: false, reason: '碎片不足', cost };
+    }
+    const pool = shopPoolForRarity(this.itemsById.values(), rarity);
+    if (pool.length === 0) {
+      return { ok: false, reason: '该稀有度暂无可抽取装备', cost };
+    }
+    const item = pool[Math.floor(this.rng() * pool.length)]!;
+    this.addFragments(-cost);
+    this.save.inventory = addItem(this.save.inventory, item, 1, 0);
+    this.save.recentDrops = [item.id, ...this.save.recentDrops].slice(0, 8);
+    this.pushLog(`军械抽取〔${rarity}〕→ ${item.nameZh}（-${cost}碎片）`, 'loot');
+    if (this.persist) writeSave(this.save);
+    this.emit(null);
+    return { ok: true, item, cost };
+  }
+
+  /**
+   * Enhance main gear using same-enhance-level fodder.
+   * mainRef: equipped slot OR inventory index.
+   * fodderInventoryIndex: inventory row to sacrifice.
+   */
+  enhanceGear(
+    main:
+      | { kind: 'equipped'; slot: EquipSlot }
+      | { kind: 'inventory'; index: number },
+    fodderInventoryIndex: number,
+  ): {
+    ok: boolean;
+    success?: boolean;
+    reason?: string;
+    newLevel?: number;
+    chance?: number;
+  } {
+    const fodderRow = this.save.inventory[fodderInventoryIndex];
+    if (!fodderRow) return { ok: false, reason: '材料不存在' };
+    const fodderItem = this.itemsById.get(fodderRow.itemId);
+    if (!fodderItem || !fodderItem.slot) {
+      return { ok: false, reason: '材料必须是装备' };
+    }
+    const fodderLv = fodderRow.enhanceLevel ?? 0;
+
+    let mainItemId: string;
+    let mainLv: number;
+    if (main.kind === 'equipped') {
+      const gear = this.save.equipment[main.slot];
+      if (!gear) return { ok: false, reason: '主装备槽为空' };
+      mainItemId = gear.itemId;
+      mainLv = gear.enhanceLevel;
+    } else {
+      const row = this.save.inventory[main.index];
+      if (!row) return { ok: false, reason: '主装备不存在' };
+      const it = this.itemsById.get(row.itemId);
+      if (!it?.slot) return { ok: false, reason: '主物品不可强化' };
+      mainItemId = row.itemId;
+      mainLv = row.enhanceLevel ?? 0;
+      if (main.index === fodderInventoryIndex) {
+        return { ok: false, reason: '不能用自身当材料' };
+      }
+    }
+
+    if (mainLv >= ENHANCE_CAP) {
+      return { ok: false, reason: '已达强化上限 +9' };
+    }
+    if (fodderLv !== mainLv) {
+      return { ok: false, reason: `材料强化等级须同为 +${mainLv}` };
+    }
+
+    const chance = enhanceSuccessChance(
+      mainLv,
+      this.save.enhanceFailStreak ?? 0,
+    );
+    // Consume fodder first
+    this.save.inventory = removeAt(this.save.inventory, fodderInventoryIndex);
+    // If main was inventory and fodder index < main index, main index shifts
+    let mainInvIndex =
+      main.kind === 'inventory' ? main.index : -1;
+    if (main.kind === 'inventory' && fodderInventoryIndex < main.index) {
+      mainInvIndex = main.index - 1;
+    }
+
+    const roll = this.rng();
+    const success = roll < chance;
+    if (success) {
+      const newLevel = mainLv + 1;
+      if (main.kind === 'equipped') {
+        this.save.equipment = setEquippedEnhance(
+          this.save.equipment,
+          main.slot,
+          newLevel,
+        );
+      } else {
+        this.save.inventory = setInventoryEnhance(
+          this.save.inventory,
+          mainInvIndex,
+          newLevel,
+        );
+      }
+      this.save.enhanceFailStreak = 0;
+      this.pushLog(
+        `强化成功 ${this.itemsById.get(mainItemId)?.nameZh ?? mainItemId} → +${newLevel}`,
+        'system',
+      );
+      if (this.persist) writeSave(this.save);
+      this.emit(null);
+      return { ok: true, success: true, newLevel, chance };
+    }
+
+    this.save.enhanceFailStreak = (this.save.enhanceFailStreak ?? 0) + 1;
+    this.pushLog(
+      `强化失败（材料已消耗，主装备仍为 +${mainLv}）`,
+      'system',
+    );
+    if (this.persist) writeSave(this.save);
+    this.emit(null);
+    return { ok: true, success: false, newLevel: mainLv, chance };
   }
 }

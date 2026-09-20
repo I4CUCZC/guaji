@@ -1,22 +1,19 @@
 {
   "id": "power_gauntlet_l",
-  "name": "Void Servo Gauntlet (L)",
-  "nameZh": "虚空伺服臂甲·左",
+  "name": "Servo Power Gauntlet (L)",
+  "nameZh": "伺服动力臂甲·左",
   "rarity": "rare",
   "slot": "arm_left",
   "stackable": false,
-  "description": "伺服增幅的动力臂甲，左臂版。",
+  "description": "内嵌微型伺服肌的动力臂甲。机魂若心情好，会在格挡时发出满足的机械嗡鸣。",
   "layer": "gear/arm_left_power.svg",
   "skill": {
     "id": "skill_servo_guard",
     "name": "Servo Guard",
     "nameZh": "伺服格挡",
-    "description": "短暂生成护盾。",
+    "kind": "active",
+    "description": "伺服肌瞬间锁死，短暂生成护盾。",
     "cooldownMs": 14000,
-    "effect": {
-      "type": "shield",
-      "amount": 30
-    },
-    "kind": "active"
+    "effect": { "type": "shield", "amount": 30 }
   }
 }

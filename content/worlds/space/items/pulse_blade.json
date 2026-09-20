@@ -5,18 +5,15 @@
   "rarity": "rare",
   "slot": "hand_right",
   "stackable": false,
-  "description": "从双腕发射器伸出的能量刃，狂热者式近战挂机标配（非手持握剑）。",
+  "description": "双腕发射器弹出的能量刃——狂热近战教团的挂机标配。非手持握剑，而是从护腕中「生长」出的切割光弧。",
   "layer": "gear/weapon_pulse_blade.svg",
   "skill": {
     "id": "skill_pulse_slash",
     "name": "Pulse Slash",
     "nameZh": "脉冲斩",
+    "kind": "active",
     "description": "双腕能量刃交叉斩击，对当前敌人造成爆发伤害。",
     "cooldownMs": 10000,
-    "effect": {
-      "type": "damage",
-      "amount": 28
-    },
-    "kind": "active"
+    "effect": { "type": "damage", "amount": 28 }
   }
 }

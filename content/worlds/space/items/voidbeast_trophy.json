@@ -1,22 +1,19 @@
 {
   "id": "voidbeast_trophy",
-  "name": "Voidbeast Trophy",
-  "nameZh": "虚空兽头骨",
+  "name": "Xeno Trophy Skull",
+  "nameZh": "异星战利头骨",
   "rarity": "epic",
   "slot": "shoulder_right",
   "stackable": false,
-  "description": "肩侧悬挂的异星头骨战利品：拉长圆顶、肋状导管与下颚须，致敬异形轮廓但为原创像素。",
+  "description": "肩侧悬挂的异星头骨：拉长圆顶、肋状导管与下颚须。致敬那些在通风管里滴答作响的噩梦，但是像素原创轮廓。",
   "layer": "gear/accessory_voidbeast_trophy.svg",
   "skill": {
     "id": "skill_void_howl",
     "name": "Acid Spit Burst",
     "nameZh": "酸蚀喷溅",
-    "description": "从战利品喷出酸液爆发，对敌人造成高额伤害。",
+    "kind": "active",
+    "description": "战利品残存的腺体收缩，喷出酸液爆发。",
     "cooldownMs": 14000,
-    "effect": {
-      "type": "damage",
-      "amount": 48
-    },
-    "kind": "active"
+    "effect": { "type": "damage", "amount": 48 }
   }
 }

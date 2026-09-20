@@ -8,3 +8,4 @@ export * from './content-loader';
 export * from './skills';
 export * from './soft-combat';
 export * from './idle-engine';
+export * from './economy';

@@ -1,34 +1,27 @@
 {
   "id": "starfall_relic",
-  "name": "Starfall Relic",
-  "nameZh": "星陨圣物",
+  "name": "Warp-Scarred Relic",
+  "nameZh": "亚空间裂片圣物",
   "rarity": "legendary",
   "slot": "neck",
   "stackable": false,
-  "description": "传说中坠落自星门的碎片，挂机运气的具象化。",
+  "description": "坠落自不稳定星门的碎片，表面流动着不该存在的几何。机仆拒绝靠近；你却觉得它在挂机时会轻轻发热。",
   "layer": "gear/accessory_starfall.svg",
   "skill": {
     "id": "skill_starfall_mend",
-    "name": "Starfall Mend",
-    "nameZh": "星陨疗愈",
-    "description": "回复大量生命值。",
+    "name": "Warp Mend",
+    "nameZh": "裂片疗愈",
+    "kind": "active",
+    "description": "借裂片中紊乱的能量勉强缝合伤口。",
     "cooldownMs": 20000,
-    "effect": {
-      "type": "heal",
-      "amount": 70
-    },
-    "kind": "active"
+    "effect": { "type": "heal", "amount": 70 }
   },
   "passiveSkill": {
     "id": "passive_starfall_aura",
-    "name": "Starfall Aura",
-    "nameZh": "星陨光晕",
-    "description": "缓慢回复生命。",
+    "name": "Relic Aura",
+    "nameZh": "圣物余晖",
     "kind": "passive",
-    "effect": {
-      "type": "regen",
-      "amount": 6,
-      "intervalMs": 5000
-    }
+    "description": "异常辐射反而缓慢回复生命——先别问为什么。",
+    "effect": { "type": "regen", "amount": 6, "intervalMs": 5000 }
   }
 }

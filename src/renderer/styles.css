@@ -61,6 +61,8 @@ body.browser-demo {
 .panel .passive-section,
 .panel .equip-section,
 .panel .inv-section,
+.panel .shop-section,
+.panel .enhance-section,
 .panel .drops-section {
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -1203,6 +1205,165 @@ body.browser-demo {
 .vfx-burst.vfx-heal .vfx-heal-ring,
 .vfx-burst.vfx-acid .vfx-acid-blob {
   animation-delay: 0.02s;
+}
+
+
+/* —— Shop / salvage / enhance —— */
+.shop-section,
+.enhance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.frag-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(66, 153, 225, 0.2);
+  border: 1px solid rgba(66, 153, 225, 0.45);
+  color: #90cdf4;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.shop-toggle {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.shop-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.shop-panel,
+.enhance-panel {
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.shop-hint {
+  margin-bottom: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+}
+
+.shop-pull {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  color: inherit;
+}
+
+.shop-pull:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.shop-pull:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.shop-rarity {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.shop-cost {
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.shop-pull.rarity-common .shop-rarity { color: #a0aec0; }
+.shop-pull.rarity-uncommon .shop-rarity { color: #48bb78; }
+.shop-pull.rarity-rare .shop-rarity { color: #4299e1; }
+.shop-pull.rarity-epic .shop-rarity { color: #9f7aea; }
+.shop-pull.rarity-legendary .shop-rarity { color: #ecc94b; }
+
+.enhance-status {
+  font-size: 12px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.enhance-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inv-row {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.inv-row .inv-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.salvage-btn {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 101, 101, 0.35);
+  background: rgba(245, 101, 101, 0.12);
+  color: #feb2b2;
+  cursor: pointer;
+}
+
+.salvage-btn:hover {
+  background: rgba(245, 101, 101, 0.22);
+}
+
+.slot.enhance-pickable,
+.inv-item.enhance-pickable {
+  outline: 1px dashed rgba(159, 122, 234, 0.5);
+}
+
+.slot.enhance-main,
+.inv-item.enhance-main {
+  outline: 2px solid #9f7aea;
+  box-shadow: 0 0 10px rgba(159, 122, 234, 0.35);
+}
+
+.inv-item.enhance-fodder {
+  outline: 2px solid #ed8936;
+  box-shadow: 0 0 10px rgba(237, 137, 54, 0.35);
+}
+
+.enhance-glow {
+  text-shadow: 0 0 6px rgba(236, 201, 75, 0.85);
 }
 
 @media (max-width: 430px) {

@@ -1,0 +1,19 @@
+{
+  "id": "acid_gland",
+  "name": "Harvested Acid Gland",
+  "nameZh": "异种酸腺",
+  "rarity": "rare",
+  "slot": "shoulder_left",
+  "stackable": false,
+  "description": "从巢穴生物体内剜出的腺体，用惰性合金匣勉强封印。一不小心就会把甲板蚀出新的「通风口」。",
+  "layer": "gear/ph_shoulder_left.svg",
+  "skill": {
+    "id": "skill_acid_spit",
+    "name": "Acid Vent",
+    "nameZh": "酸腺喷泄",
+    "kind": "active",
+    "description": "打开放射阀，朝敌人喷出腐蚀酸雾。",
+    "cooldownMs": 12000,
+    "effect": { "type": "damage", "amount": 32 }
+  }
+}

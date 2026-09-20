@@ -1,10 +1,10 @@
 {
   "id": "scrap_plasteel",
   "name": "Plasteel Scrap",
-  "nameZh": "塑钢碎片",
+  "nameZh": "塑钢废料",
   "rarity": "common",
   "slot": null,
   "stackable": true,
-  "description": "挂机路上捡到的废料，没什么用但很有成就感。",
+  "description": "战场回收的复合装甲碎片。帝国工兵称之为「还能再焊一次」的神圣废料，可分解为世界碎片。",
   "layer": null
 }

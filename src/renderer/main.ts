@@ -11,6 +11,7 @@ import {
   unequipSlot,
   EQUIP_SLOTS,
   RARITY_LABEL_ZH,
+  RARITY_ORDER,
   SPACE_ITEM_IDS,
   SKILL_BAR_SIZE,
   PASSIVE_SKILL_BAR_SIZE,
@@ -18,6 +19,12 @@ import {
   fightState,
   hpBand,
   shieldTier,
+  SHOP_PULL_COST,
+  SALVAGE_FRAGMENTS,
+  ENHANCE_CAP,
+  enhanceSuccessChance,
+  isEnhanceMilestone,
+  clampEnhanceLevel,
 } from '@core/index';
 import type {
   EquipSlot,
@@ -55,8 +62,11 @@ function rarityClass(r: Rarity): string {
   return `rarity-${r}`;
 }
 
-function itemLabel(item: ItemDef): string {
-  return `${item.nameZh}〔${RARITY_LABEL_ZH[item.rarity]}〕`;
+function itemLabel(item: ItemDef, enhanceLevel = 0): string {
+  const plus =
+    enhanceLevel > 0 ? `+${enhanceLevel}` : '';
+  const glow = isEnhanceMilestone(enhanceLevel) ? '✦' : '';
+  return `${item.nameZh}${plus}${glow}〔${RARITY_LABEL_ZH[item.rarity]}〕`;
 }
 
 function hpPct(cur: number, max: number): number {
@@ -176,8 +186,30 @@ async function boot(): Promise<void> {
       <div class="section-title">装备栏（装备/卸下立即改变对峙场纸娃娃外观）</div>
       <div class="equip-grid" data-equip></div>
     </div>
+    <div class="shop-section no-drag">
+      <div class="section-title">
+        星际军械库
+        <span class="frag-badge" data-fragments>碎片 0</span>
+        <button type="button" class="shop-toggle" data-shop-toggle>打开商店</button>
+      </div>
+      <div class="shop-panel" data-shop-panel hidden>
+        <div class="meta shop-hint">消耗本世界碎片抽取装备；费用随目标稀有度上升。约 10 次同稀有度分解 ≈ 1 次同档抽取。</div>
+        <div class="shop-grid" data-shop-grid></div>
+      </div>
+    </div>
+    <div class="enhance-section no-drag">
+      <div class="section-title">
+        装备强化（+0～+9）
+        <button type="button" class="shop-toggle" data-enhance-toggle>打开强化</button>
+      </div>
+      <div class="enhance-panel" data-enhance-panel hidden>
+        <div class="meta">同强化等级的另一件装备作材料；失败只消耗材料，主装备不掉级。连续失败有软保底。</div>
+        <div class="enhance-status" data-enhance-status></div>
+        <div class="enhance-actions" data-enhance-actions></div>
+      </div>
+    </div>
     <div class="inv-section no-drag">
-      <div class="section-title">背包（点击可装备）</div>
+      <div class="section-title">背包（点击装备 · 可分解）</div>
       <div class="inv-list" data-inv></div>
     </div>
     <div class="drops-section no-drag">
@@ -188,7 +220,7 @@ async function boot(): Promise<void> {
       <button type="button" class="primary" data-toggle>暂停挂机</button>
       <button type="button" data-reset>重置存档</button>
     </div>
-    <p class="hint no-drag">对峙布局：左纸娃娃右敌方像素肖像。装备/卸下会立刻切换纸娃娃图层（含脉冲腕刃）。可用「寻觅弱敌 / 寻常对手 / 寻觅强敌」调节难度与掉落。势均力敌约数分钟；日志用「轻击 / 普通 / 重击 / 破防」。主动与被动各 3 格。</p>
+    <p class="hint no-drag">对峙布局：左纸娃娃右敌方像素肖像。装备/卸下会立刻切换纸娃娃图层（含脉冲腕刃）。可用「寻觅弱敌 / 寻常对手 / 寻觅强敌」调节难度与掉落。势均力敌约数分钟；日志用「轻击 / 普通 / 重击 / 破防」。主动与被动各 3 格。商店抽装 / 分解换碎片 / 强化最高 +9。</p>
   `;
   app.appendChild(panel);
 
@@ -225,6 +257,14 @@ async function boot(): Promise<void> {
     passivePicker: panel.querySelector('[data-passive-picker]') as HTMLElement,
     equip: panel.querySelector('[data-equip]') as HTMLElement,
     inv: panel.querySelector('[data-inv]') as HTMLElement,
+    fragments: panel.querySelector('[data-fragments]') as HTMLElement,
+    shopToggle: panel.querySelector('[data-shop-toggle]') as HTMLButtonElement,
+    shopPanel: panel.querySelector('[data-shop-panel]') as HTMLElement,
+    shopGrid: panel.querySelector('[data-shop-grid]') as HTMLElement,
+    enhanceToggle: panel.querySelector('[data-enhance-toggle]') as HTMLButtonElement,
+    enhancePanel: panel.querySelector('[data-enhance-panel]') as HTMLElement,
+    enhanceStatus: panel.querySelector('[data-enhance-status]') as HTMLElement,
+    enhanceActions: panel.querySelector('[data-enhance-actions]') as HTMLElement,
     toggle: panel.querySelector('[data-toggle]') as HTMLButtonElement,
     reset: panel.querySelector('[data-reset]') as HTMLButtonElement,
   };
@@ -243,6 +283,14 @@ async function boot(): Promise<void> {
 
   let pickSlot: number | null = null;
   let pickPassiveSlot: number | null = null;
+  /** Enhance UI: main = equipped slot or inventory index; fodder = inventory index */
+  let enhanceMain:
+    | { kind: 'equipped'; slot: EquipSlot }
+    | { kind: 'inventory'; index: number }
+    | null = null;
+  let enhanceFodderIndex: number | null = null;
+  let shopOpen = false;
+  let enhanceOpen = false;
   let lastSkillSig = '';
   let lastPassiveSig = '';
   let lastEquipSig = '';
@@ -299,7 +347,7 @@ async function boot(): Promise<void> {
     slash: ['arm_left', 'arm_right', 'hand_left', 'hand_right'],
     heal: ['body', 'waist'],
     shield: ['neck', 'shoulder_left', 'shoulder_right', 'arm_left', 'arm_right', 'head'],
-    acid: ['head', 'shoulder_right', 'neck'],
+    acid: ['head', 'shoulder_right', 'shoulder_left', 'neck'],
   };
 
   let vfxClearTimer = 0;
@@ -399,7 +447,10 @@ async function boot(): Promise<void> {
   }
 
   function renderDoll(snap: GameSnapshot): void {
-    const sig = EQUIP_SLOTS.map((s) => snap.equipment[s] ?? '').join('|');
+    const sig = EQUIP_SLOTS.map((s) => {
+      const g = snap.equipment[s];
+      return g ? `${g.itemId}+${g.enhanceLevel}` : '';
+    }).join('|');
     if (sig === lastDollSig && els.doll.querySelectorAll('img.layer').length > 0) {
       return;
     }
@@ -870,7 +921,7 @@ async function boot(): Promise<void> {
       const empty = document.createElement('div');
       empty.className = 'meta';
       empty.textContent =
-        '暂无可用被动。请先装备带被动的道具（护目镜 / 护胫 / 胸甲 / 头盔 / 圣物等）。';
+        '暂无可用被动。请先装备带被动的道具（战地兴奋剂 / 护胫 / 胸甲 / 头盔 / 圣物等）。';
       els.passivePicker.appendChild(empty);
       return;
     }
@@ -902,7 +953,10 @@ async function boot(): Promise<void> {
   }
 
   function renderEquip(snap: GameSnapshot): void {
-    const sig = EQUIP_SLOTS.map((s) => snap.equipment[s] ?? '').join('|');
+    const sig = EQUIP_SLOTS.map((s) => {
+      const g = snap.equipment[s];
+      return g ? `${g.itemId}+${g.enhanceLevel}` : '';
+    }).join('|');
     if (sig === lastEquipSig && els.equip.childElementCount === EQUIP_SLOTS.length) {
       return;
     }
@@ -913,25 +967,37 @@ async function boot(): Promise<void> {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'slot';
-      const itemId = snap.equipment[slot];
-      const item = itemId ? content.itemsById.get(itemId) : undefined;
+      const gear = snap.equipment[slot];
+      const item = gear ? content.itemsById.get(gear.itemId) : undefined;
       btn.innerHTML = `<span class="slot-label">${SLOT_LABEL_ZH[slot]}</span>`;
       const span = document.createElement('span');
       span.className = 'slot-item';
-      if (item) {
+      if (item && gear) {
         span.classList.add(rarityClass(item.rarity));
+        if (isEnhanceMilestone(gear.enhanceLevel)) span.classList.add('enhance-glow');
         const marks =
           (item.skill && (item.skill.kind ?? 'active') === 'active' ? '★' : '') +
           (item.passiveSkill || item.skill?.kind === 'passive' ? '◆' : '');
-        span.textContent = marks ? `${item.nameZh}${marks}` : item.nameZh;
+        const plus = gear.enhanceLevel > 0 ? `+${gear.enhanceLevel}` : '';
+        span.textContent = `${item.nameZh}${plus}${marks}`;
         const tips: string[] = [];
+        if (gear.enhanceLevel > 0) tips.push(`强化 +${gear.enhanceLevel}`);
         if (item.skill && (item.skill.kind ?? 'active') === 'active') {
           tips.push(`主动：${item.skill.nameZh}`);
         }
         if (item.passiveSkill) tips.push(`被动：${item.passiveSkill.nameZh}`);
         else if (item.skill?.kind === 'passive') tips.push(`被动：${item.skill.nameZh}`);
-        tips.push('点击卸下');
+        tips.push('左键卸下 · 强化面板可选为主装备');
         btn.title = tips.join(' — ');
+        if (enhanceOpen) {
+          btn.classList.add('enhance-pickable');
+          if (
+            enhanceMain?.kind === 'equipped' &&
+            enhanceMain.slot === slot
+          ) {
+            btn.classList.add('enhance-main');
+          }
+        }
       } else {
         span.textContent = '空';
         span.style.opacity = '0.4';
@@ -939,7 +1005,17 @@ async function boot(): Promise<void> {
       btn.appendChild(span);
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        if (!engine.getSnapshot().equipment[slot]) return;
+        const cur = engine.getSnapshot().equipment[slot];
+        if (!cur) return;
+        if (enhanceOpen) {
+          enhanceMain = { kind: 'equipped', slot };
+          enhanceFodderIndex = null;
+          lastInvSig = '';
+          renderEnhance(engine.getSnapshot());
+          renderEquip(engine.getSnapshot());
+          renderInv(engine.getSnapshot());
+          return;
+        }
         const s = engine.getSave();
         const result = unequipSlot(s.inventory, s.equipment, slot);
         engine.replaceSave({
@@ -952,10 +1028,127 @@ async function boot(): Promise<void> {
     }
   }
 
+  function renderShop(snap: GameSnapshot): void {
+    els.fragments.textContent = `碎片 ${snap.fragments}`;
+    els.shopPanel.hidden = !shopOpen;
+    els.shopToggle.textContent = shopOpen ? '收起商店' : '打开商店';
+    if (!shopOpen) return;
+    els.shopGrid.replaceChildren();
+    for (const rarity of RARITY_ORDER) {
+      const cost = SHOP_PULL_COST[rarity];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `shop-pull rarity-${rarity}`;
+      btn.disabled = snap.fragments < cost;
+      btn.innerHTML =
+        `<span class="shop-rarity">${RARITY_LABEL_ZH[rarity]}</span>` +
+        `<span class="shop-cost">${cost} 碎片</span>`;
+      btn.title = `抽取一件${RARITY_LABEL_ZH[rarity]}装备（约等于 10 次同稀有度分解）`;
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const res = engine.shopPull(rarity);
+        if (!res.ok) {
+          alert(res.reason ?? '抽取失败');
+          return;
+        }
+        lastInvSig = '';
+        renderAll(engine.getSnapshot(), null);
+      });
+      els.shopGrid.appendChild(btn);
+    }
+  }
+
+  function renderEnhance(snap: GameSnapshot): void {
+    els.enhancePanel.hidden = !enhanceOpen;
+    els.enhanceToggle.textContent = enhanceOpen ? '收起强化' : '打开强化';
+    if (!enhanceOpen) {
+      els.enhanceStatus.textContent = '';
+      els.enhanceActions.replaceChildren();
+      return;
+    }
+
+    let mainLabel = '未选择主装备（点装备栏或背包中的装备）';
+    let mainLv = 0;
+    if (enhanceMain?.kind === 'equipped') {
+      const g = snap.equipment[enhanceMain.slot];
+      const it = g ? content.itemsById.get(g.itemId) : undefined;
+      if (g && it) {
+        mainLv = g.enhanceLevel;
+        mainLabel = `主：${it.nameZh} +${mainLv}（${SLOT_LABEL_ZH[enhanceMain.slot]}）`;
+      }
+    } else if (enhanceMain?.kind === 'inventory') {
+      const row = snap.inventory[enhanceMain.index];
+      const it = row ? content.itemsById.get(row.itemId) : undefined;
+      if (row && it) {
+        mainLv = clampEnhanceLevel(row.enhanceLevel ?? 0);
+        mainLabel = `主：${it.nameZh} +${mainLv}（背包）`;
+      }
+    }
+
+    let fodderLabel = '未选择材料（点背包中同强化等级的另一件装备）';
+    if (enhanceFodderIndex != null) {
+      const row = snap.inventory[enhanceFodderIndex];
+      const it = row ? content.itemsById.get(row.itemId) : undefined;
+      if (row && it) {
+        fodderLabel = `材：${it.nameZh} +${clampEnhanceLevel(row.enhanceLevel ?? 0)}`;
+      }
+    }
+
+    const chance =
+      mainLv < ENHANCE_CAP
+        ? enhanceSuccessChance(mainLv, snap.enhanceFailStreak)
+        : 0;
+    els.enhanceStatus.innerHTML =
+      `<div>${mainLabel}</div><div>${fodderLabel}</div>` +
+      `<div class="meta">成功率约 ${Math.round(chance * 100)}% · 连续失败 ${snap.enhanceFailStreak} · 上限 +${ENHANCE_CAP}</div>`;
+
+    els.enhanceActions.replaceChildren();
+    const go = document.createElement('button');
+    go.type = 'button';
+    go.className = 'primary';
+    go.textContent = '尝试强化 +1';
+    go.disabled = !enhanceMain || enhanceFodderIndex == null || mainLv >= ENHANCE_CAP;
+    go.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (!enhanceMain || enhanceFodderIndex == null) return;
+      const res = engine.enhanceGear(enhanceMain, enhanceFodderIndex);
+      enhanceFodderIndex = null;
+      if (res.ok && res.success && enhanceMain.kind === 'inventory') {
+        // index may have shifted; clear selection to be safe
+        enhanceMain = null;
+      }
+      lastInvSig = '';
+      lastEquipSig = '';
+      renderAll(engine.getSnapshot(), null);
+      if (res.ok === false) alert(res.reason ?? '无法强化');
+    });
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.textContent = '清除选择';
+    clear.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      enhanceMain = null;
+      enhanceFodderIndex = null;
+      lastInvSig = '';
+      lastEquipSig = '';
+      renderEnhance(engine.getSnapshot());
+      renderEquip(engine.getSnapshot());
+      renderInv(engine.getSnapshot());
+    });
+    els.enhanceActions.append(go, clear);
+  }
+
   function renderInv(snap: GameSnapshot): void {
-    const sig = snap.inventory.map((e) => `${e.itemId}:${e.qty}`).join(',') +
+    const sig =
+      snap.inventory
+        .map((e) => `${e.itemId}:${e.qty}:${e.enhanceLevel ?? 0}`)
+        .join(',') +
       '|' +
-      EQUIP_SLOTS.map((s) => snap.equipment[s] ?? '').join('|');
+      EQUIP_SLOTS.map((s) => {
+        const g = snap.equipment[s];
+        return g ? `${g.itemId}+${g.enhanceLevel}` : '';
+      }).join('|') +
+      `|enh:${enhanceOpen}:${enhanceMain ? JSON.stringify(enhanceMain) : ''}:${enhanceFodderIndex}`;
     if (sig === lastInvSig) return;
     lastInvSig = sig;
 
@@ -968,21 +1161,28 @@ async function boot(): Promise<void> {
       return;
     }
 
-    const rows: { item: ItemDef; qty: number; equippable: boolean }[] = [];
-    const seenStack = new Map<string, number>();
-    for (const entry of snap.inventory) {
+    type Row = {
+      item: ItemDef;
+      qty: number;
+      equippable: boolean;
+      enhanceLevel: number;
+      index: number;
+      stackable: boolean;
+    };
+    const rows: Row[] = [];
+    // Preserve indices for salvage/enhance — render each inventory row
+    snap.inventory.forEach((entry, index) => {
       const item = content.itemsById.get(entry.itemId);
-      if (!item) continue;
-      if (item.stackable) {
-        seenStack.set(item.id, (seenStack.get(item.id) ?? 0) + entry.qty);
-      } else {
-        rows.push({ item, qty: entry.qty, equippable: !!item.slot });
-      }
-    }
-    for (const [id, qty] of seenStack) {
-      const item = content.itemsById.get(id);
-      if (item) rows.push({ item, qty, equippable: !!item.slot });
-    }
+      if (!item) return;
+      rows.push({
+        item,
+        qty: entry.qty,
+        equippable: !!item.slot,
+        enhanceLevel: clampEnhanceLevel(entry.enhanceLevel ?? 0),
+        index,
+        stackable: item.stackable,
+      });
+    });
 
     const rarityRank: Record<Rarity, number> = {
       legendary: 5,
@@ -997,48 +1197,108 @@ async function boot(): Promise<void> {
     });
 
     for (const row of rows) {
+      const wrap = document.createElement('div');
+      wrap.className = 'inv-row';
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'inv-item';
-      btn.disabled = !row.equippable;
+      if (enhanceOpen && row.equippable) btn.classList.add('enhance-pickable');
+      if (
+        enhanceMain?.kind === 'inventory' &&
+        enhanceMain.index === row.index
+      ) {
+        btn.classList.add('enhance-main');
+      }
+      if (enhanceFodderIndex === row.index) btn.classList.add('enhance-fodder');
+
       const name = document.createElement('span');
       name.className = rarityClass(row.item.rarity);
+      if (isEnhanceMilestone(row.enhanceLevel)) name.classList.add('enhance-glow');
       const skillMark =
         (row.item.skill && (row.item.skill.kind ?? 'active') === 'active' ? '★' : '') +
         (row.item.passiveSkill || row.item.skill?.kind === 'passive' ? '◆' : '');
-      name.textContent = `${itemLabel(row.item)}${skillMark}`;
+      name.textContent = `${itemLabel(row.item, row.enhanceLevel)}${skillMark}`;
       const qty = document.createElement('span');
       qty.className = 'qty';
-      qty.textContent = row.equippable
-        ? row.item.slot
-          ? SLOT_LABEL_ZH[row.item.slot]
-          : ''
-        : `×${row.qty}`;
-      if (row.item.stackable) qty.textContent = `×${row.qty}`;
+      if (row.stackable) qty.textContent = `×${row.qty}`;
+      else if (row.item.slot) qty.textContent = SLOT_LABEL_ZH[row.item.slot];
+      else qty.textContent = '';
       btn.append(name, qty);
       {
         const tips = [row.item.description ?? ''];
+        if (row.enhanceLevel > 0) tips.push(`强化 +${row.enhanceLevel}`);
         if (row.item.skill && (row.item.skill.kind ?? 'active') === 'active') {
           tips.push(`主动：${row.item.skill.nameZh}`);
         }
         if (row.item.passiveSkill) tips.push(`被动：${row.item.passiveSkill.nameZh}`);
-        else if (row.item.skill?.kind === 'passive') tips.push(`被动：${row.item.skill.nameZh}`);
+        tips.push(`分解可得 ${SALVAGE_FRAGMENTS[row.item.rarity]} 碎片`);
         btn.title = tips.filter(Boolean).join('\n');
       }
-      if (row.equippable) {
-        btn.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          const s = engine.getSave();
-          const result = equipItem(s.inventory, s.equipment, row.item);
-          if (!result) return;
-          engine.replaceSave({
-            ...s,
-            inventory: result.inventory,
-            equipment: result.equipment,
-          });
+
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (enhanceOpen && row.equippable) {
+          if (
+            !enhanceMain ||
+            (enhanceMain.kind === 'inventory' &&
+              enhanceMain.index === row.index)
+          ) {
+            enhanceMain = { kind: 'inventory', index: row.index };
+            enhanceFodderIndex = null;
+          } else {
+            const mainLv =
+              enhanceMain.kind === 'equipped'
+                ? engine.getSnapshot().equipment[enhanceMain.slot]?.enhanceLevel ?? 0
+                : clampEnhanceLevel(
+                    engine.getSnapshot().inventory[enhanceMain.index]
+                      ?.enhanceLevel ?? 0,
+                  );
+            if (row.enhanceLevel !== mainLv) {
+              alert(`材料须与主装备同为 +${mainLv}`);
+              return;
+            }
+            enhanceFodderIndex = row.index;
+          }
+          lastInvSig = '';
+          lastEquipSig = '';
+          renderEnhance(engine.getSnapshot());
+          renderEquip(engine.getSnapshot());
+          renderInv(engine.getSnapshot());
+          return;
+        }
+        if (!row.equippable) return;
+        const s = engine.getSave();
+        const result = equipItem(s.inventory, s.equipment, row.item, {
+          inventoryIndex: row.index,
         });
-      }
-      els.inv.appendChild(btn);
+        if (!result) return;
+        engine.replaceSave({
+          ...s,
+          inventory: result.inventory,
+          equipment: result.equipment,
+        });
+      });
+
+      const salvageBtn = document.createElement('button');
+      salvageBtn.type = 'button';
+      salvageBtn.className = 'salvage-btn';
+      salvageBtn.textContent = '分解';
+      salvageBtn.title = `分解 → ${SALVAGE_FRAGMENTS[row.item.rarity]} 碎片`;
+      salvageBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const res = engine.salvageInventoryAt(row.index);
+        if (!res.ok) return;
+        if (enhanceMain?.kind === 'inventory' && enhanceMain.index === row.index) {
+          enhanceMain = null;
+        }
+        if (enhanceFodderIndex === row.index) enhanceFodderIndex = null;
+        lastInvSig = '';
+        renderAll(engine.getSnapshot(), null);
+      });
+
+      wrap.append(btn, salvageBtn);
+      els.inv.appendChild(wrap);
     }
   }
 
@@ -1100,6 +1360,8 @@ async function boot(): Promise<void> {
     }
     renderDoll(snap);
     renderEquip(snap);
+    renderShop(snap);
+    renderEnhance(snap);
     renderInv(snap);
     renderDrops(snap);
   }
@@ -1148,18 +1410,50 @@ async function boot(): Promise<void> {
   renderSkillPicker(engine.getSnapshot());
   renderPassivePicker(engine.getSnapshot());
 
+  els.shopToggle.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    shopOpen = !shopOpen;
+    if (shopOpen) enhanceOpen = false;
+    renderShop(engine.getSnapshot());
+    renderEnhance(engine.getSnapshot());
+    lastEquipSig = '';
+    lastInvSig = '';
+    renderEquip(engine.getSnapshot());
+    renderInv(engine.getSnapshot());
+  });
+
+  els.enhanceToggle.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    enhanceOpen = !enhanceOpen;
+    if (enhanceOpen) shopOpen = false;
+    if (!enhanceOpen) {
+      enhanceMain = null;
+      enhanceFodderIndex = null;
+    }
+    renderShop(engine.getSnapshot());
+    renderEnhance(engine.getSnapshot());
+    lastEquipSig = '';
+    lastInvSig = '';
+    renderEquip(engine.getSnapshot());
+    renderInv(engine.getSnapshot());
+  });
+
   els.toggle.addEventListener('click', () => {
     if (engine.getSnapshot().idleStatus === 'killing') engine.pause();
     else engine.start();
   });
 
   els.reset.addEventListener('click', () => {
-    if (!confirm('确定重置存档？等级 / 背包 / 装备 / 主动与被动技能栏将清空。')) return;
+    if (!confirm('确定重置存档？等级 / 背包 / 装备 / 碎片 / 强化 / 技能栏将清空。')) return;
     engine.pause();
     const fresh = defaultSave(content.world.id);
     writeSave(fresh);
     pickSlot = null;
     pickPassiveSlot = null;
+    enhanceMain = null;
+    enhanceFodderIndex = null;
+    shopOpen = false;
+    enhanceOpen = false;
     lastSkillSig = '';
     lastPassiveSig = '';
     lastEquipSig = '';
