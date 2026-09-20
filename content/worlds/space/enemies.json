@@ -1,7 +1,7 @@
 {
   "worldId": "space",
-  "breatherMs": 2200,
-  "playerAttackIntervalMs": 900,
+  "breatherMs": 9000,
+  "playerAttackIntervalMs": 2500,
   "enemies": [
     {
       "id": "void_mite",
@@ -10,16 +10,35 @@
       "tier": 1,
       "minLevel": 1,
       "maxLevel": 4,
-      "hp": 18,
+      "hp": 920,
       "attack": 2,
-      "attackIntervalMs": 1100,
-      "xp": { "min": 4, "max": 7 },
+      "attackIntervalMs": 3400,
+      "xp": {
+        "min": 6,
+        "max": 10
+      },
       "weight": 12,
       "drops": [
-        { "itemId": "scrap_plasteel", "weight": 55, "rarity": "common" },
-        { "itemId": "power_cell", "weight": 35, "rarity": "common" },
-        { "itemId": "void_goggles", "weight": 8, "rarity": "uncommon" },
-        { "itemId": "carapace_torso", "weight": 2, "rarity": "uncommon" }
+        {
+          "itemId": "scrap_plasteel",
+          "weight": 55,
+          "rarity": "common"
+        },
+        {
+          "itemId": "power_cell",
+          "weight": 35,
+          "rarity": "common"
+        },
+        {
+          "itemId": "void_goggles",
+          "weight": 8,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "carapace_torso",
+          "weight": 2,
+          "rarity": "uncommon"
+        }
       ]
     },
     {
@@ -29,16 +48,35 @@
       "tier": 1,
       "minLevel": 1,
       "maxLevel": 5,
-      "hp": 22,
-      "attack": 3,
-      "attackIntervalMs": 1000,
-      "xp": { "min": 5, "max": 8 },
+      "hp": 1100,
+      "attack": 2,
+      "attackIntervalMs": 3200,
+      "xp": {
+        "min": 7,
+        "max": 12
+      },
       "weight": 10,
       "drops": [
-        { "itemId": "scrap_plasteel", "weight": 50, "rarity": "common" },
-        { "itemId": "power_cell", "weight": 32, "rarity": "common" },
-        { "itemId": "greaves_voidwalker", "weight": 12, "rarity": "uncommon" },
-        { "itemId": "void_goggles", "weight": 6, "rarity": "uncommon" }
+        {
+          "itemId": "scrap_plasteel",
+          "weight": 50,
+          "rarity": "common"
+        },
+        {
+          "itemId": "power_cell",
+          "weight": 32,
+          "rarity": "common"
+        },
+        {
+          "itemId": "greaves_voidwalker",
+          "weight": 12,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "void_goggles",
+          "weight": 6,
+          "rarity": "uncommon"
+        }
       ]
     },
     {
@@ -48,19 +86,50 @@
       "tier": 2,
       "minLevel": 3,
       "maxLevel": 8,
-      "hp": 36,
+      "hp": 2800,
       "attack": 5,
-      "attackIntervalMs": 950,
-      "xp": { "min": 8, "max": 14 },
+      "attackIntervalMs": 2800,
+      "xp": {
+        "min": 12,
+        "max": 18
+      },
       "weight": 10,
       "drops": [
-        { "itemId": "scrap_plasteel", "weight": 30, "rarity": "common" },
-        { "itemId": "power_cell", "weight": 22, "rarity": "common" },
-        { "itemId": "void_goggles", "weight": 16, "rarity": "uncommon" },
-        { "itemId": "carapace_torso", "weight": 14, "rarity": "uncommon" },
-        { "itemId": "greaves_voidwalker", "weight": 10, "rarity": "uncommon" },
-        { "itemId": "power_gauntlet_l", "weight": 4, "rarity": "rare" },
-        { "itemId": "power_gauntlet_r", "weight": 4, "rarity": "rare" }
+        {
+          "itemId": "scrap_plasteel",
+          "weight": 30,
+          "rarity": "common"
+        },
+        {
+          "itemId": "power_cell",
+          "weight": 22,
+          "rarity": "common"
+        },
+        {
+          "itemId": "void_goggles",
+          "weight": 16,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "carapace_torso",
+          "weight": 14,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "greaves_voidwalker",
+          "weight": 10,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "power_gauntlet_l",
+          "weight": 4,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_r",
+          "weight": 4,
+          "rarity": "rare"
+        }
       ]
     },
     {
@@ -70,20 +139,55 @@
       "tier": 2,
       "minLevel": 4,
       "maxLevel": 10,
-      "hp": 42,
+      "hp": 3400,
       "attack": 6,
-      "attackIntervalMs": 900,
-      "xp": { "min": 10, "max": 16 },
+      "attackIntervalMs": 2700,
+      "xp": {
+        "min": 14,
+        "max": 22
+      },
       "weight": 9,
       "drops": [
-        { "itemId": "power_cell", "weight": 28, "rarity": "common" },
-        { "itemId": "scrap_plasteel", "weight": 20, "rarity": "common" },
-        { "itemId": "carapace_torso", "weight": 16, "rarity": "uncommon" },
-        { "itemId": "void_goggles", "weight": 12, "rarity": "uncommon" },
-        { "itemId": "pulse_blade", "weight": 8, "rarity": "rare" },
-        { "itemId": "power_gauntlet_r", "weight": 8, "rarity": "rare" },
-        { "itemId": "power_gauntlet_l", "weight": 6, "rarity": "rare" },
-        { "itemId": "voidbeast_trophy", "weight": 2, "rarity": "epic" }
+        {
+          "itemId": "power_cell",
+          "weight": 28,
+          "rarity": "common"
+        },
+        {
+          "itemId": "scrap_plasteel",
+          "weight": 20,
+          "rarity": "common"
+        },
+        {
+          "itemId": "carapace_torso",
+          "weight": 16,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "void_goggles",
+          "weight": 12,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "pulse_blade",
+          "weight": 8,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_r",
+          "weight": 8,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_l",
+          "weight": 6,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "voidbeast_trophy",
+          "weight": 2,
+          "rarity": "epic"
+        }
       ]
     },
     {
@@ -93,21 +197,60 @@
       "tier": 3,
       "minLevel": 6,
       "maxLevel": 14,
-      "hp": 60,
-      "attack": 8,
-      "attackIntervalMs": 850,
-      "xp": { "min": 14, "max": 22 },
+      "hp": 5600,
+      "attack": 11,
+      "attackIntervalMs": 2600,
+      "xp": {
+        "min": 20,
+        "max": 30
+      },
       "weight": 8,
       "drops": [
-        { "itemId": "power_cell", "weight": 18, "rarity": "common" },
-        { "itemId": "scrap_plasteel", "weight": 12, "rarity": "common" },
-        { "itemId": "greaves_voidwalker", "weight": 14, "rarity": "uncommon" },
-        { "itemId": "carapace_torso", "weight": 12, "rarity": "uncommon" },
-        { "itemId": "pulse_blade", "weight": 14, "rarity": "rare" },
-        { "itemId": "power_gauntlet_l", "weight": 10, "rarity": "rare" },
-        { "itemId": "power_gauntlet_r", "weight": 10, "rarity": "rare" },
-        { "itemId": "aegis_helm", "weight": 6, "rarity": "epic" },
-        { "itemId": "voidbeast_trophy", "weight": 4, "rarity": "epic" }
+        {
+          "itemId": "power_cell",
+          "weight": 18,
+          "rarity": "common"
+        },
+        {
+          "itemId": "scrap_plasteel",
+          "weight": 12,
+          "rarity": "common"
+        },
+        {
+          "itemId": "greaves_voidwalker",
+          "weight": 14,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "carapace_torso",
+          "weight": 12,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "pulse_blade",
+          "weight": 14,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_l",
+          "weight": 10,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_r",
+          "weight": 10,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "aegis_helm",
+          "weight": 6,
+          "rarity": "epic"
+        },
+        {
+          "itemId": "voidbeast_trophy",
+          "weight": 4,
+          "rarity": "epic"
+        }
       ]
     },
     {
@@ -117,20 +260,55 @@
       "tier": 4,
       "minLevel": 9,
       "maxLevel": 20,
-      "hp": 90,
-      "attack": 12,
-      "attackIntervalMs": 800,
-      "xp": { "min": 20, "max": 32 },
+      "hp": 9000,
+      "attack": 16,
+      "attackIntervalMs": 2500,
+      "xp": {
+        "min": 28,
+        "max": 40
+      },
       "weight": 6,
       "drops": [
-        { "itemId": "power_cell", "weight": 12, "rarity": "common" },
-        { "itemId": "void_goggles", "weight": 10, "rarity": "uncommon" },
-        { "itemId": "pulse_blade", "weight": 16, "rarity": "rare" },
-        { "itemId": "power_gauntlet_l", "weight": 12, "rarity": "rare" },
-        { "itemId": "power_gauntlet_r", "weight": 12, "rarity": "rare" },
-        { "itemId": "aegis_helm", "weight": 14, "rarity": "epic" },
-        { "itemId": "voidbeast_trophy", "weight": 12, "rarity": "epic" },
-        { "itemId": "starfall_relic", "weight": 4, "rarity": "legendary" }
+        {
+          "itemId": "power_cell",
+          "weight": 12,
+          "rarity": "common"
+        },
+        {
+          "itemId": "void_goggles",
+          "weight": 10,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "pulse_blade",
+          "weight": 16,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_l",
+          "weight": 12,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_r",
+          "weight": 12,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "aegis_helm",
+          "weight": 14,
+          "rarity": "epic"
+        },
+        {
+          "itemId": "voidbeast_trophy",
+          "weight": 12,
+          "rarity": "epic"
+        },
+        {
+          "itemId": "starfall_relic",
+          "weight": 4,
+          "rarity": "legendary"
+        }
       ]
     },
     {
@@ -140,20 +318,55 @@
       "tier": 5,
       "minLevel": 12,
       "maxLevel": 99,
-      "hp": 130,
-      "attack": 16,
-      "attackIntervalMs": 750,
-      "xp": { "min": 28, "max": 42 },
+      "hp": 14000,
+      "attack": 22,
+      "attackIntervalMs": 2400,
+      "xp": {
+        "min": 36,
+        "max": 52
+      },
       "weight": 4,
       "drops": [
-        { "itemId": "pulse_blade", "weight": 14, "rarity": "rare" },
-        { "itemId": "power_gauntlet_l", "weight": 10, "rarity": "rare" },
-        { "itemId": "power_gauntlet_r", "weight": 10, "rarity": "rare" },
-        { "itemId": "aegis_helm", "weight": 18, "rarity": "epic" },
-        { "itemId": "voidbeast_trophy", "weight": 18, "rarity": "epic" },
-        { "itemId": "starfall_relic", "weight": 12, "rarity": "legendary" },
-        { "itemId": "carapace_torso", "weight": 8, "rarity": "uncommon" },
-        { "itemId": "power_cell", "weight": 10, "rarity": "common" }
+        {
+          "itemId": "pulse_blade",
+          "weight": 14,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_l",
+          "weight": 10,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "power_gauntlet_r",
+          "weight": 10,
+          "rarity": "rare"
+        },
+        {
+          "itemId": "aegis_helm",
+          "weight": 18,
+          "rarity": "epic"
+        },
+        {
+          "itemId": "voidbeast_trophy",
+          "weight": 18,
+          "rarity": "epic"
+        },
+        {
+          "itemId": "starfall_relic",
+          "weight": 12,
+          "rarity": "legendary"
+        },
+        {
+          "itemId": "carapace_torso",
+          "weight": 8,
+          "rarity": "uncommon"
+        },
+        {
+          "itemId": "power_cell",
+          "weight": 10,
+          "rarity": "common"
+        }
       ]
     }
   ]

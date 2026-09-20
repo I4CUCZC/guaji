@@ -12,7 +12,10 @@
     "name": "Plate Brace",
     "nameZh": "板甲撑持",
     "description": "回复少量生命。",
-    "cooldownMs": 11000,
-    "effect": { "type": "heal", "amount": 12 }
+    "cooldownMs": 14000,
+    "effect": {
+      "type": "heal",
+      "amount": 28
+    }
   }
 }

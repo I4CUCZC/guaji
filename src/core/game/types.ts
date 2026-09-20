@@ -195,7 +195,18 @@ export interface SkillSlotView {
   ready: boolean;
 }
 
+export interface SkillVfxEvent {
+  skillId: string;
+  effectType: SkillEffectType;
+  /** Visual theme hint for CSS classes */
+  vfx: 'slash' | 'heal' | 'shield' | 'acid';
+  nameZh: string;
+  /** Monotonic id so UI can detect each cast */
+  seq: number;
+}
+
 export interface CombatView {
+
   phase: CombatPhase;
   enemy: EnemyInstance | null;
   playerHp: number;
@@ -203,6 +214,7 @@ export interface CombatView {
   playerShield: number;
   log: CombatLogLine[];
   skillSlots: SkillSlotView[];
+  lastVfx: SkillVfxEvent | null;
 }
 
 /** Result of finishing one encounter (victory) */

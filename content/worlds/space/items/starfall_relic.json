@@ -12,7 +12,10 @@
     "name": "Starfall Mend",
     "nameZh": "星陨疗愈",
     "description": "回复大量生命值。",
-    "cooldownMs": 16000,
-    "effect": { "type": "heal", "amount": 35 }
+    "cooldownMs": 20000,
+    "effect": {
+      "type": "heal",
+      "amount": 70
+    }
   }
 }

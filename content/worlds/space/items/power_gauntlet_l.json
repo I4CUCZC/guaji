@@ -12,7 +12,10 @@
     "name": "Servo Guard",
     "nameZh": "伺服格挡",
     "description": "短暂生成护盾。",
-    "cooldownMs": 10000,
-    "effect": { "type": "shield", "amount": 14 }
+    "cooldownMs": 14000,
+    "effect": {
+      "type": "shield",
+      "amount": 30
+    }
   }
 }

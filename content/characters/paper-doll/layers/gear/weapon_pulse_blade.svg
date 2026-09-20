@@ -1,16 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
-  <!-- energy blade on right side -->
-  <rect x="51" y="12" width="6" height="34" fill="#2b6cb0"/>
-  <rect x="52" y="14" width="4" height="30" fill="#63b3ed"/>
-  <rect x="53" y="12" width="2" height="34" fill="#ebf8ff"/>
-  <!-- tip glow -->
-  <rect x="52" y="10" width="4" height="4" fill="#90cdf4"/>
-  <rect x="53" y="9" width="2" height="2" fill="#ffffff"/>
-  <!-- emitter / hilt -->
-  <rect x="49" y="44" width="10" height="8" fill="#2d3748"/>
-  <rect x="50" y="45" width="8" height="5" fill="#4a5568"/>
-  <rect x="51" y="46" width="6" height="2" fill="#ecc94b"/>
-  <rect x="52" y="49" width="4" height="2" fill="#1a202c"/>
-  <!-- sparkle -->
-  <rect x="54" y="22" width="1" height="6" fill="#ffffff" opacity="0.8"/>
+  <!-- LEFT wrist emitter + energy blade (extends UP from forearm) -->
+  <rect x="10" y="46" width="10" height="6" fill="#1a202c"/>
+  <rect x="11" y="47" width="8" height="4" fill="#2d3748"/>
+  <rect x="12" y="48" width="6" height="2" fill="#ecc94b"/>
+  <!-- blade core left -->
+  <rect x="12" y="14" width="6" height="34" fill="#2b6cb0"/>
+  <rect x="13" y="16" width="4" height="30" fill="#63b3ed"/>
+  <rect x="14" y="14" width="2" height="34" fill="#ebf8ff"/>
+  <rect x="13" y="12" width="4" height="3" fill="#90cdf4"/>
+  <rect x="14" y="11" width="2" height="2" fill="#ffffff"/>
+  <rect x="15" y="22" width="1" height="8" fill="#ffffff" opacity="0.85"/>
+  <!-- soft glow rim -->
+  <rect x="11" y="18" width="1" height="24" fill="#4299e1" opacity="0.5"/>
+  <rect x="18" y="18" width="1" height="24" fill="#4299e1" opacity="0.5"/>
+
+  <!-- RIGHT wrist emitter + energy blade -->
+  <rect x="44" y="46" width="10" height="6" fill="#1a202c"/>
+  <rect x="45" y="47" width="8" height="4" fill="#2d3748"/>
+  <rect x="46" y="48" width="6" height="2" fill="#ecc94b"/>
+  <rect x="46" y="14" width="6" height="34" fill="#2b6cb0"/>
+  <rect x="47" y="16" width="4" height="30" fill="#63b3ed"/>
+  <rect x="48" y="14" width="2" height="34" fill="#ebf8ff"/>
+  <rect x="47" y="12" width="4" height="3" fill="#90cdf4"/>
+  <rect x="48" y="11" width="2" height="2" fill="#ffffff"/>
+  <rect x="49" y="22" width="1" height="8" fill="#ffffff" opacity="0.85"/>
+  <rect x="45" y="18" width="1" height="24" fill="#4299e1" opacity="0.5"/>
+  <rect x="52" y="18" width="1" height="24" fill="#4299e1" opacity="0.5"/>
 </svg>

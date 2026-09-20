@@ -12,7 +12,10 @@
     "name": "Aegis Barrier",
     "nameZh": "神盾屏障",
     "description": "生成护盾，抵挡接下来的伤害。",
-    "cooldownMs": 14000,
-    "effect": { "type": "shield", "amount": 25 }
+    "cooldownMs": 18000,
+    "effect": {
+      "type": "shield",
+      "amount": 55
+    }
   }
 }

@@ -12,7 +12,10 @@
     "name": "Servo Punch",
     "nameZh": "伺服重拳",
     "description": "追加一次重击伤害。",
-    "cooldownMs": 9000,
-    "effect": { "type": "damage", "amount": 14 }
+    "cooldownMs": 11000,
+    "effect": {
+      "type": "damage",
+      "amount": 22
+    }
   }
 }

@@ -29,28 +29,38 @@ body.browser-demo {
   align-items: stretch;
   justify-content: center;
   padding: 10px;
+  position: relative;
+  z-index: 0;
 }
 
 .panel {
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding: 12px;
   border-radius: 14px;
-  background: rgba(15, 20, 28, 0.92);
+  background: rgba(15, 20, 28, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   -webkit-app-region: drag;
   app-region: drag;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .panel button,
 .panel .inv-item,
 .panel .slot,
-.panel .no-drag {
+.panel .no-drag,
+.panel .skill-section,
+.panel .equip-section,
+.panel .inv-section,
+.panel .drops-section {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
@@ -60,6 +70,9 @@ body.browser-demo {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .panel-header h1 {
@@ -76,11 +89,15 @@ body.browser-demo {
   color: #ebf8ff;
 }
 
+/* —— Main combat + doll row (never overlapped by drops) —— */
 .main-row {
   display: grid;
   grid-template-columns: 140px 1fr;
   gap: 10px;
-  min-height: 180px;
+  min-height: 200px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 3;
 }
 
 .doll-wrap {
@@ -88,6 +105,8 @@ body.browser-demo {
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  position: relative;
+  z-index: 3;
 }
 
 .doll-stage {
@@ -108,6 +127,7 @@ body.browser-demo {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
+  z-index: 3;
 }
 
 .doll-stage img.layer {
@@ -117,6 +137,15 @@ body.browser-demo {
   height: 100%;
   pointer-events: none;
   image-rendering: pixelated;
+  z-index: 1;
+}
+
+.vfx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: visible;
 }
 
 .idle-box {
@@ -124,6 +153,9 @@ body.browser-demo {
   flex-direction: column;
   gap: 8px;
   font-size: 12px;
+  min-width: 0;
+  position: relative;
+  z-index: 3;
 }
 
 .status-line {
@@ -183,27 +215,56 @@ body.browser-demo {
   font-size: 11px;
 }
 
-.last-drops {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  max-height: 72px;
-  overflow: hidden;
-}
-
-.drop-line {
-  font-size: 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .section-title {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   opacity: 0.55;
   margin-bottom: 4px;
+}
+
+/* —— Recent drops: dedicated bottom strip, never overlays combat/skills —— */
+.drops-section {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  max-height: 72px;
+  overflow: hidden;
+}
+
+.last-drops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 48px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  z-index: 2;
+}
+
+.drop-chip,
+.drop-line {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.equip-section {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 4;
 }
 
 .equip-grid {
@@ -223,6 +284,11 @@ body.browser-demo {
   cursor: pointer;
   font-size: 11px;
   min-height: 34px;
+  color: inherit;
+  width: 100%;
+  text-align: left;
+  position: relative;
+  z-index: 4;
 }
 
 .slot:hover {
@@ -241,17 +307,26 @@ body.browser-demo {
   white-space: nowrap;
 }
 
+.inv-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+  z-index: 4;
+}
+
 .inv-list {
   flex: 1;
-  min-height: 120px;
-  max-height: 180px;
+  min-height: 80px;
+  max-height: 140px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding-right: 2px;
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
+  position: relative;
+  z-index: 4;
 }
 
 .inv-item {
@@ -268,6 +343,8 @@ body.browser-demo {
   text-align: left;
   color: inherit;
   width: 100%;
+  position: relative;
+  z-index: 4;
 }
 
 .inv-item:hover {
@@ -288,6 +365,9 @@ body.browser-demo {
 .toolbar {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 4;
 }
 
 .toolbar button {
@@ -317,6 +397,7 @@ body.browser-demo {
   font-size: 10px;
   opacity: 0.45;
   line-height: 1.35;
+  flex-shrink: 0;
 }
 
 .rarity-common {
@@ -335,7 +416,6 @@ body.browser-demo {
   color: #ecc94b;
 }
 
-/* Keep old pet styles for optional companion reuse */
 .pet-stage {
   position: relative;
   -webkit-app-region: drag;
@@ -358,6 +438,8 @@ body.browser-demo {
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 3;
 }
 
 .combat-title {
@@ -368,7 +450,7 @@ body.browser-demo {
 
 .hp-row {
   display: grid;
-  grid-template-columns: 18px 1fr 52px;
+  grid-template-columns: 18px 1fr 64px;
   align-items: center;
   gap: 6px;
   font-size: 11px;
@@ -450,87 +532,294 @@ body.browser-demo {
   color: #a0aec0;
 }
 
-/* —— Skill bar —— */
+/* —— Skill bar (high z, large hit targets) —— */
+.skill-section {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 6;
+}
+
 .skill-bar {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 8px;
+  position: relative;
+  z-index: 6;
 }
 
 .skill-slot {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 2px;
-  padding: 8px;
-  min-height: 48px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 10px;
+  min-height: 56px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
   color: inherit;
   cursor: pointer;
   text-align: left;
-  font-size: 11px;
+  font-size: 12px;
+  position: relative;
+  z-index: 6;
+  touch-action: manipulation;
 }
 
 .skill-slot:hover {
-  border-color: rgba(159, 122, 234, 0.55);
+  border-color: rgba(159, 122, 234, 0.65);
+  background: rgba(159, 122, 234, 0.1);
 }
 
 .skill-slot.picking {
   border-color: #9f7aea;
-  box-shadow: 0 0 0 1px rgba(159, 122, 234, 0.4);
+  box-shadow: 0 0 0 2px rgba(159, 122, 234, 0.45);
 }
 
 .skill-slot.ready {
-  border-color: rgba(72, 187, 120, 0.55);
-  background: rgba(72, 187, 120, 0.08);
+  border-color: rgba(72, 187, 120, 0.6);
+  background: rgba(72, 187, 120, 0.1);
 }
 
 .skill-slot.cooling {
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 .skill-slot.empty {
-  opacity: 0.55;
+  opacity: 0.7;
   border-style: dashed;
 }
 
 .skill-name {
-  font-weight: 600;
+  font-weight: 700;
+  pointer-events: none;
 }
 
 .skill-cd {
-  font-size: 10px;
-  opacity: 0.7;
+  font-size: 11px;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.skill-hint {
+  font-size: 9px;
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .skill-picker {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(26, 32, 44, 0.98);
+  border: 1px solid rgba(159, 122, 234, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  position: relative;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-picker[hidden] {
+  display: none !important;
+}
+
+.skill-picker-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e9d8fd;
+}
+
+.skill-picker-actions,
+.skill-picker-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
+  gap: 6px;
   align-items: center;
 }
 
 .skill-pick-btn {
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 8px 12px;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   background: #2d3748;
   color: #edf2f7;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .skill-pick-btn:hover {
   background: #4a5568;
 }
 
-.main-row {
-  min-height: 220px;
+.skill-pick-btn.primary {
+  background: #2b6cb0;
+  border-color: #3182ce;
 }
 
-.inv-list {
-  max-height: 140px;
+.skill-pick-btn.danger {
+  background: #742a2a;
+  border-color: #c53030;
+}
+
+.skill-pick-btn.choice {
+  background: #322659;
+  border-color: #6b46c1;
+}
+
+.skill-pick-btn.choice:hover {
+  background: #553c9a;
+}
+
+/* —— Skill VFX on doll stage —— */
+.vfx-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.vfx-label {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 0 6px #000;
+  animation: vfx-label 0.65s ease-out forwards;
+  z-index: 6;
+}
+
+.vfx-slash .vfx-label { color: #90cdf4; }
+.vfx-heal .vfx-label { color: #9ae6b4; }
+.vfx-shield .vfx-label { color: #90cdf4; }
+.vfx-acid .vfx-label { color: #9ae6b4; }
+
+.vfx-blade {
+  position: absolute;
+  width: 7px;
+  height: 44px;
+  top: 26%;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #ffffff, #63b3ed 35%, #2b6cb0);
+  box-shadow: 0 0 14px #63b3ed, 0 0 26px #4299e1;
+  animation: slash-flash 0.55s ease-out forwards;
+}
+.vfx-blade.left {
+  left: 12%;
+  transform: rotate(-20deg);
+  transform-origin: bottom center;
+}
+.vfx-blade.right {
+  right: 12%;
+  transform: rotate(20deg);
+  transform-origin: bottom center;
+  animation-name: slash-flash-r;
+}
+
+.vfx-heal {
+  background: radial-gradient(circle at 50% 45%, rgba(104, 211, 145, 0.55), transparent 55%);
+  animation: heal-pulse 0.65s ease-out forwards;
+}
+.vfx-heal-ring {
+  position: absolute;
+  inset: 18% 22%;
+  border: 2px solid rgba(154, 230, 180, 0.95);
+  border-radius: 50%;
+  animation: heal-ring 0.65s ease-out forwards;
+}
+
+.vfx-shield {
+  box-shadow: inset 0 0 0 3px rgba(144, 205, 244, 0.9);
+  animation: shield-shimmer 0.7s ease-out forwards;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(144, 205, 244, 0.4) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+}
+
+.vfx-acid-blob {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 16%;
+  top: 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #c6f6d5, #276749 70%);
+  box-shadow:
+    10px 14px 0 -2px #68d391,
+    22px 8px 0 -4px #48bb78,
+    28px 20px 0 -5px #9ae6b4,
+    0 0 18px #68d391;
+  animation: acid-burst 0.6s ease-out forwards;
+}
+
+@keyframes slash-flash {
+  0% { opacity: 0; transform: rotate(-20deg) scaleY(0.25); }
+  35% { opacity: 1; transform: rotate(-14deg) scaleY(1.15); }
+  100% { opacity: 0; transform: rotate(-8deg) scaleY(1.45) translateY(-10px); }
+}
+@keyframes slash-flash-r {
+  0% { opacity: 0; transform: rotate(20deg) scaleY(0.25); }
+  35% { opacity: 1; transform: rotate(14deg) scaleY(1.15); }
+  100% { opacity: 0; transform: rotate(8deg) scaleY(1.45) translateY(-10px); }
+}
+@keyframes heal-pulse {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes heal-ring {
+  0% { transform: scale(0.55); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+@keyframes shield-shimmer {
+  0% { opacity: 0; background-position: 100% 0; }
+  40% { opacity: 1; }
+  100% { opacity: 0; background-position: -100% 0; }
+}
+@keyframes acid-burst {
+  0% { opacity: 0; transform: scale(0.35); }
+  40% { opacity: 1; transform: scale(1.15) translate(8px, 6px); }
+  100% { opacity: 0; transform: scale(1.5) translate(16px, 14px); }
+}
+@keyframes vfx-label {
+  0% { opacity: 0; transform: translate(-50%, 6px); }
+  30% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -10px); }
+}
+
+.doll-stage.vfx-playing-slash {
+  filter: drop-shadow(0 0 6px #63b3ed);
+}
+.doll-stage.vfx-playing-heal {
+  filter: drop-shadow(0 0 8px #68d391);
+}
+.doll-stage.vfx-playing-shield {
+  filter: drop-shadow(0 0 8px #90cdf4);
+}
+.doll-stage.vfx-playing-acid {
+  filter: drop-shadow(0 0 8px #48bb78);
+}
+
+@media (max-height: 720px) {
+  .inv-list {
+    max-height: 100px;
+  }
+  .drops-section {
+    max-height: 56px;
+  }
+  .skill-slot {
+    min-height: 48px;
+    padding: 8px;
+  }
 }

@@ -1,17 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
-  <!-- bulky servo gauntlet left -->
-  <rect x="9" y="27" width="13" height="22" fill="#1a202c"/>
-  <rect x="10" y="28" width="11" height="18" fill="#2d3748"/>
-  <rect x="12" y="30" width="8" height="14" fill="#4a5568"/>
-  <!-- power conduit -->
-  <rect x="12" y="34" width="8" height="3" fill="#ecc94b"/>
-  <rect x="13" y="35" width="5" height="1" fill="#faf089"/>
-  <!-- plating lines -->
-  <rect x="12" y="30" width="8" height="1" fill="#718096"/>
-  <rect x="12" y="40" width="8" height="1" fill="#1a202c"/>
-  <!-- fist -->
-  <rect x="9" y="46" width="13" height="8" fill="#4a5568"/>
-  <rect x="10" y="47" width="10" height="5" fill="#718096"/>
-  <rect x="8" y="49" width="4" height="4" fill="#e53e3e"/>
-  <rect x="9" y="50" width="2" height="2" fill="#fc8181"/>
+  <rect x="8" y="26" width="14" height="24" fill="#0b0f14"/>
+  <rect x="9" y="27" width="12" height="20" fill="#1a202c"/>
+  <rect x="11" y="29" width="9" height="16" fill="#2d3748"/>
+  <rect x="12" y="31" width="6" height="10" fill="#4a5568"/>
+  <rect x="11" y="34" width="9" height="3" fill="#d69e2e"/>
+  <rect x="12" y="35" width="6" height="1" fill="#faf089"/>
+  <rect x="11" y="29" width="9" height="1" fill="#718096"/>
+  <rect x="11" y="40" width="9" height="1" fill="#0b0f14"/>
+  <rect x="8" y="46" width="14" height="9" fill="#2d3748"/>
+  <rect x="9" y="47" width="11" height="6" fill="#4a5568"/>
+  <rect x="10" y="48" width="8" height="3" fill="#718096"/>
+  <rect x="7" y="49" width="4" height="4" fill="#c53030"/>
+  <rect x="8" y="50" width="2" height="2" fill="#fc8181"/>
 </svg>

@@ -10,6 +10,7 @@ import type {
   ItemDef,
   SaveData,
   SkillDef,
+  SkillVfxEvent,
   TickResult,
   WorldDef,
 } from './types';
@@ -43,13 +44,21 @@ const LOG_MAX = 8;
 const RARITY_ATK: Record<string, number> = {
   common: 1,
   uncommon: 2,
-  rare: 4,
-  epic: 6,
-  legendary: 9,
+  rare: 5,
+  epic: 8,
+  legendary: 12,
 };
 
 /**
- * Encounter-based idle combat: spawn → HP bars → auto attacks → loot → breather.
+ * Combat pacing targets (even-matched enemy vs current player power):
+ * - TTK ≈ 240–360 seconds (~5 minutes), early and mid game.
+ * - Auto-attack interval ≈ 2.5s; player DPS and enemy HP scale together.
+ * - Example L1 bare: ATK ~8 / 2.5s ≈ 3.2 DPS vs ~920 HP → ~290s.
+ * - Example L8 + rare gear: ATK ~30 / 2.5s ≈ 12 DPS + skills ≈ 15–17
+ *   effective DPS vs ~4500–5600 HP band → ~260–340s.
+ * - Lower-tier foes stay weaker/poorer loot but still ≥ ~2–3 minutes.
+ * - Skills contribute ~25–35% of fight damage over CDs (not one-shot).
+ * - Breather after win ≤ fight length (pack.breatherMs, typically ~9s).
  */
 export class IdleEngine {
   private world: WorldDef;
@@ -75,6 +84,8 @@ export class IdleEngine {
   private playerAtkCd = 0;
   private enemyAtkCd = 0;
   private breatherCd = 0;
+  private lastVfx: SkillVfxEvent | null = null;
+  private vfxSeq = 0;
 
   constructor(opts: IdleEngineOptions) {
     this.world = opts.world;
@@ -97,17 +108,16 @@ export class IdleEngine {
   }
 
   private playerMaxHpForLevel(level: number): number {
-    return 40 + level * 12;
+    return 180 + level * 45;
   }
 
   private playerAttackPower(): number {
-    let atk = 4 + Math.floor(this.save.level * 1.5);
+    let atk = 6 + Math.floor(this.save.level * 1.8);
     const weaponId = this.save.equipment.weapon;
     if (weaponId) {
       const item = this.itemsById.get(weaponId);
       if (item) atk += RARITY_ATK[item.rarity] ?? 2;
     }
-    // light bonuses from arms
     for (const slot of ['arm_left', 'arm_right'] as const) {
       const id = this.save.equipment[slot];
       if (!id) continue;
@@ -129,6 +139,13 @@ export class IdleEngine {
 
   private pushLog(text: string, kind: CombatLogLine['kind']): void {
     this.log = [{ text, kind }, ...this.log].slice(0, LOG_MAX);
+  }
+
+  private vfxForSkill(skill: SkillDef): SkillVfxEvent['vfx'] {
+    if (skill.id === 'skill_void_howl') return 'acid';
+    if (skill.effect.type === 'heal') return 'heal';
+    if (skill.effect.type === 'shield') return 'shield';
+    return 'slash';
   }
 
   getSave(): SaveData {
@@ -159,6 +176,7 @@ export class IdleEngine {
           available,
           this.cooldownRemaining,
         ),
+        lastVfx: this.lastVfx,
       },
       skillBar: this.save.skillBar,
       availableSkills: available,
@@ -180,7 +198,7 @@ export class IdleEngine {
     this.status = 'killing';
     if (this.phase === 'paused') {
       this.phase = this.enemy ? 'fighting' : 'breather';
-      if (!this.enemy) this.breatherCd = Math.min(this.breatherCd, 600);
+      if (!this.enemy) this.breatherCd = Math.min(this.breatherCd || 600, 600);
     }
     this.emit(null);
     this.timer = setInterval(() => this.frame(TICK_MS), TICK_MS);
@@ -209,7 +227,6 @@ export class IdleEngine {
   private frame(dt: number): TickResult | null {
     if (this.status !== 'killing') return null;
 
-    // Decay skill cooldowns always while running
     for (const id of Object.keys(this.cooldownRemaining)) {
       this.cooldownRemaining[id] = Math.max(0, this.cooldownRemaining[id]! - dt);
     }
@@ -235,7 +252,6 @@ export class IdleEngine {
       (e) => level >= e.minLevel && level <= e.maxLevel,
     );
     if (pool.length === 0) {
-      // Fallback: closest tier by minLevel
       pool = [...this.enemiesPack.enemies].sort(
         (a, b) =>
           Math.abs(a.minLevel - level) - Math.abs(b.minLevel - level),
@@ -248,10 +264,9 @@ export class IdleEngine {
 
   private spawnEncounter(): void {
     const def = this.pickEnemy();
-    // Scale lightly with level above min
     const over = Math.max(0, this.save.level - def.minLevel);
-    const hpScale = 1 + over * 0.06;
-    const atkScale = 1 + over * 0.04;
+    const hpScale = 1 + over * 0.05;
+    const atkScale = 1 + over * 0.035;
     const maxHp = Math.round(def.hp * hpScale);
     this.enemy = {
       defId: def.id,
@@ -263,13 +278,13 @@ export class IdleEngine {
       tier: def.tier,
     };
     this.phase = 'fighting';
-    this.playerAtkCd = 400;
-    this.enemyAtkCd = Math.floor(def.attackIntervalMs * 0.6);
+    this.playerAtkCd = 800;
+    this.enemyAtkCd = Math.floor(def.attackIntervalMs * 0.7);
     this.resetPlayerVitals(false);
-    // Soft heal between fights
+    // Soft heal between fights (not longer than a short breather's worth)
     this.playerHp = Math.min(
       this.playerMaxHp,
-      this.playerHp + Math.floor(this.playerMaxHp * 0.25),
+      this.playerHp + Math.floor(this.playerMaxHp * 0.35),
     );
     this.pushLog(`遭遇了${def.nameZh}`, 'encounter');
   }
@@ -277,7 +292,6 @@ export class IdleEngine {
   private fightFrame(dt: number): TickResult | null {
     if (!this.enemy) return null;
 
-    // Auto-cast ready skills in bar order
     this.autoCastSkills();
 
     this.playerAtkCd -= dt;
@@ -314,7 +328,7 @@ export class IdleEngine {
       this.pushLog('你被击倒了…稍作喘息后继续', 'system');
       this.enemy = null;
       this.phase = 'breather';
-      this.breatherCd = this.enemiesPack.breatherMs + 800;
+      this.breatherCd = Math.min(this.enemiesPack.breatherMs + 2000, 12000);
       this.resetPlayerVitals(true);
       if (this.persist) writeSave(this.save);
     }
@@ -368,6 +382,14 @@ export class IdleEngine {
       this.pushLog(`【${skill.nameZh}】获得 ${effect.amount} 护盾`, 'skill');
     }
     this.cooldownRemaining[skill.id] = skill.cooldownMs;
+    this.vfxSeq += 1;
+    this.lastVfx = {
+      skillId: skill.id,
+      effectType: effect.type,
+      vfx: this.vfxForSkill(skill),
+      nameZh: skill.nameZh,
+      seq: this.vfxSeq,
+    };
 
     if (this.enemy && this.enemy.hp <= 0) {
       const result = this.resolveVictory();
@@ -399,7 +421,6 @@ export class IdleEngine {
       worldId: this.world.id,
       entries,
     };
-    // Always roll once from enemy table (encounter reward)
     loot = rollLoot(table, this.itemsById, this.rng);
     if (loot) {
       this.save.inventory = addItem(this.save.inventory, loot, 1);
