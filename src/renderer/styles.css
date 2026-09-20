@@ -35,11 +35,11 @@ body.browser-demo {
 
 .panel {
   width: 100%;
-  max-width: 520px;
+  max-width: 640px;
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding: 12px;
   border-radius: 14px;
   background: rgba(15, 20, 28, 0.94);
@@ -439,7 +439,9 @@ body.browser-demo {
 .equip-section {
   flex-shrink: 0;
   position: relative;
-  z-index: 4;
+  z-index: 3;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .equip-grid {
@@ -487,25 +489,40 @@ body.browser-demo {
 }
 
 .inv-section {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0;
   position: relative;
-  z-index: 4;
+  z-index: 5;
+  margin: 4px 0 8px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(12, 18, 28, 0.98);
+  border: 1px solid rgba(144, 205, 244, 0.28);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  isolation: isolate;
+}
+
+.inv-section .section-title,
+.inv-section .section-title {
+  color: #90cdf4;
+  opacity: 0.9;
+  margin-bottom: 6px;
 }
 
 .inv-list {
-  flex: 1;
-  min-height: 80px;
-  max-height: 140px;
+  flex: 0 0 auto;
+  min-height: 120px;
+  max-height: 220px;
+  overflow-x: hidden;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-right: 2px;
+  gap: 6px;
+  padding: 4px 2px 4px 0;
   position: relative;
-  z-index: 4;
+  z-index: 5;
+  -webkit-overflow-scrolling: touch;
 }
 
 .inv-item {
@@ -1215,6 +1232,8 @@ body.browser-demo {
   flex-direction: column;
   gap: 6px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .frag-badge {

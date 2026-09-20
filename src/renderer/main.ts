@@ -186,6 +186,10 @@ async function boot(): Promise<void> {
       <div class="section-title">装备栏（装备/卸下立即改变对峙场纸娃娃外观）</div>
       <div class="equip-grid" data-equip></div>
     </div>
+    <div class="inv-section no-drag">
+      <div class="section-title">背包（点击装备 · 可分解）</div>
+      <div class="inv-list" data-inv></div>
+    </div>
     <div class="shop-section no-drag">
       <div class="section-title">
         星际军械库
@@ -207,10 +211,6 @@ async function boot(): Promise<void> {
         <div class="enhance-status" data-enhance-status></div>
         <div class="enhance-actions" data-enhance-actions></div>
       </div>
-    </div>
-    <div class="inv-section no-drag">
-      <div class="section-title">背包（点击装备 · 可分解）</div>
-      <div class="inv-list" data-inv></div>
     </div>
     <div class="drops-section no-drag">
       <div class="section-title">最近掉落</div>

@@ -21,8 +21,8 @@ function createWindow() {
   const display = screen.getPrimaryDisplay();
   const { width: sw, height: sh } = display.workAreaSize;
   // Slightly larger framed panel for usable gear UI (MVP)
-  const winW = 680;
-  const winH = 820;
+  const winW = 720;
+  const winH = 860;
 
   mainWindow = new BrowserWindow({
     width: winW,
