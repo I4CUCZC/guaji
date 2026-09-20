@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "id": "bongo-cat",
+    "name": "Bongo Cat",
+    "nameZh": "邦戈猫",
+    "author": "guaji-desktop-pet",
+    "version": "1.0.0",
+    "width": 280,
+    "height": 220
+  },
+  "defaultState": "idle",
+  "states": [
+    {
+      "id": "idle",
+      "fps": 2,
+      "loop": true,
+      "frames": [
+        { "src": "assets/idle.svg", "durationMs": 800 },
+        { "src": "assets/idle-blink.svg", "durationMs": 120 },
+        { "src": "assets/idle.svg", "durationMs": 1600 }
+      ]
+    },
+    {
+      "id": "typing",
+      "fps": 10,
+      "loop": true,
+      "timeoutMs": 450,
+      "frames": [
+        { "src": "assets/typing-left.svg" },
+        { "src": "assets/typing-right.svg" }
+      ]
+    },
+    {
+      "id": "click",
+      "fps": 8,
+      "loop": true,
+      "timeoutMs": 350,
+      "frames": [
+        { "src": "assets/click.svg" },
+        { "src": "assets/idle.svg", "durationMs": 80 }
+      ]
+    }
+  ],
+  "reactions": [
+    { "trigger": "keyboard", "state": "typing", "priority": 1 },
+    { "trigger": "mousedown", "state": "click", "priority": 2 }
+  ]
+}
