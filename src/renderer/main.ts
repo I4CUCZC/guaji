@@ -219,8 +219,17 @@ async function boot(): Promise<void> {
     <div class="toolbar no-drag">
       <button type="button" class="primary" data-toggle>暂停挂机</button>
       <button type="button" data-reset>重置存档</button>
+      <div class="speed-controls" title="测试加速：也可按 [ 减速、] 加速、\\ 恢复 1x">
+        <span class="meta">速度</span>
+        <button type="button" data-speed="1">1x</button>
+        <button type="button" data-speed="2">2x</button>
+        <button type="button" data-speed="5">5x</button>
+        <button type="button" data-speed="10">10x</button>
+        <button type="button" data-speed="20">20x</button>
+        <span class="speed-label meta" data-speed-label>×1</span>
+      </div>
     </div>
-    <p class="hint no-drag">对峙布局：左纸娃娃右敌方像素肖像。装备/卸下会立刻切换纸娃娃图层（含脉冲腕刃）。可用「寻觅弱敌 / 寻常对手 / 寻觅强敌」调节难度与掉落。势均力敌约数分钟；日志用「轻击 / 普通 / 重击 / 破防」。主动与被动各 3 格。商店抽装 / 分解换碎片 / 强化最高 +9。</p>
+    <p class="hint no-drag">对峙布局：左纸娃娃右敌方像素肖像。装备/卸下会立刻切换纸娃娃图层（含脉冲腕刃）。可用「寻觅弱敌 / 寻常对手 / 寻觅强敌」调节难度与掉落。势均力敌约数分钟；日志用「轻击 / 普通 / 重击 / 破防」。主动与被动各 3 格。商店抽装 / 分解换碎片 / 强化最高 +9。测试加速：点速度按钮，或按 [ ] 调节、\\ 恢复 1x。</p>
   `;
   app.appendChild(panel);
 
@@ -267,6 +276,7 @@ async function boot(): Promise<void> {
     enhanceActions: panel.querySelector('[data-enhance-actions]') as HTMLElement,
     toggle: panel.querySelector('[data-toggle]') as HTMLButtonElement,
     reset: panel.querySelector('[data-reset]') as HTMLButtonElement,
+    speedLabel: panel.querySelector('[data-speed-label]') as HTMLElement,
   };
 
   els.world.textContent = content.world.nameZh;
@@ -1404,6 +1414,46 @@ async function boot(): Promise<void> {
     }
     renderCombat(engine.getSnapshot());
   });
+
+
+  const SPEED_KEY = 'guaji-test-speed';
+  const SPEED_OPTS = [1, 2, 5, 10, 20] as const;
+  function applySpeed(mult: number, persist = true): void {
+    const m = SPEED_OPTS.includes(mult as (typeof SPEED_OPTS)[number]) ? mult : 1;
+    engine.setSpeed(m);
+    els.speedLabel.textContent = `×${m}`;
+    panel.querySelectorAll('[data-speed]').forEach((btn) => {
+      const b = btn as HTMLButtonElement;
+      b.classList.toggle('active', Number(b.dataset.speed) === m);
+    });
+    if (persist) {
+      try { localStorage.setItem(SPEED_KEY, String(m)); } catch { /* ignore */ }
+    }
+  }
+  panel.querySelectorAll('[data-speed]').forEach((btn) => {
+    btn.addEventListener('click', () => applySpeed(Number((btn as HTMLButtonElement).dataset.speed)));
+  });
+  window.addEventListener('keydown', (ev) => {
+    const tag = (ev.target as HTMLElement)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (ev.key === ']') {
+      const i = SPEED_OPTS.indexOf(engine.getSpeed() as (typeof SPEED_OPTS)[number]);
+      applySpeed(SPEED_OPTS[Math.min(SPEED_OPTS.length - 1, (i < 0 ? 0 : i) + 1)]!);
+    } else if (ev.key === '[') {
+      const i = SPEED_OPTS.indexOf(engine.getSpeed() as (typeof SPEED_OPTS)[number]);
+      applySpeed(SPEED_OPTS[Math.max(0, (i < 0 ? 0 : i) - 1)]!);
+    } else if (ev.key === '\\') {
+      applySpeed(1);
+    }
+  });
+  {
+    let initial = 1;
+    try {
+      const raw = Number(localStorage.getItem(SPEED_KEY));
+      if (SPEED_OPTS.includes(raw as (typeof SPEED_OPTS)[number])) initial = raw;
+    } catch { /* ignore */ }
+    applySpeed(initial, false);
+  }
 
   engine.subscribe((snap, tick) => renderAll(snap, tick));
   renderAll(engine.getSnapshot(), null);

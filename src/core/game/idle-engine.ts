@@ -98,6 +98,8 @@ export class IdleEngine {
   private rng: () => number;
   private persist: boolean;
   private timer: ReturnType<typeof setInterval> | null = null;
+  /** Test/dev combat speed (1 = normal). */
+  private speedMultiplier = 1;
   private listeners = new Set<IdleListener>();
   private lastTick: TickResult | null = null;
   private status: 'killing' | 'paused' = 'paused';
@@ -335,6 +337,23 @@ export class IdleEngine {
     for (const fn of this.listeners) fn(snap, tick);
   }
 
+  getSpeed(): number {
+    return this.speedMultiplier;
+  }
+
+  /** Testing aid: 1 / 2 / 5 / 10 / 20. Restarts the tick loop if running. */
+  setSpeed(mult: number): void {
+    const allowed = [1, 2, 5, 10, 20];
+    const m = allowed.includes(mult) ? mult : 1;
+    this.speedMultiplier = m;
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = setInterval(() => this.frame(TICK_MS * this.speedMultiplier), TICK_MS);
+    }
+    this.emit(null);
+  }
+
+
   start(): void {
     if (this.timer) return;
     this.status = 'killing';
@@ -343,7 +362,7 @@ export class IdleEngine {
       if (!this.enemy) this.breatherCd = Math.min(this.breatherCd || 600, 600);
     }
     this.emit(null);
-    this.timer = setInterval(() => this.frame(TICK_MS), TICK_MS);
+    this.timer = setInterval(() => this.frame(TICK_MS * this.speedMultiplier), TICK_MS);
   }
 
   pause(): void {

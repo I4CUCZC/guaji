@@ -1419,3 +1419,36 @@ body.browser-demo {
   .fighter-enemy { grid-area: enemy; }
   .arena-mid { grid-area: mid; }
 }
+
+
+/* —— Test speed controls —— */
+.speed-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: auto;
+}
+.speed-controls button {
+  min-width: 36px;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  cursor: pointer;
+}
+.speed-controls button:hover {
+  border-color: rgba(246, 173, 85, 0.55);
+}
+.speed-controls button.active {
+  border-color: #ed8936;
+  background: rgba(237, 137, 54, 0.28);
+  color: #feebc8;
+}
+.speed-label {
+  min-width: 28px;
+  font-weight: 700;
+  color: #f6ad55;
+}
