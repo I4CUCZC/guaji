@@ -1,0 +1,10 @@
+{
+  "id": "xeno_skull",
+  "name": "Xeno Skull Trophy",
+  "nameZh": "异形头骨战利品",
+  "rarity": "epic",
+  "slot": "accessory",
+  "stackable": false,
+  "description": "挂在肩侧的异形头骨，证明你真的在挂机。",
+  "layer": "gear/accessory_xeno_skull.svg"
+}

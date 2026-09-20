@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- glowing relic orb near hip -->
+  <rect x="8" y="48" width="8" height="8" fill="#d69e2e"/>
+  <rect x="10" y="50" width="4" height="4" fill="#faf089"/>
+  <rect x="11" y="51" width="2" height="2" fill="#fffff0"/>
+  <rect x="6" y="46" width="2" height="2" fill="#f6e05e"/>
+  <rect x="16" y="46" width="2" height="2" fill="#f6e05e"/>
+  <rect x="6" y="56" width="2" height="2" fill="#f6e05e"/>
+</svg>

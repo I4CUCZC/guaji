@@ -1,0 +1,10 @@
+{
+  "id": "zealot_blade",
+  "name": "Zealot Energy Blade",
+  "nameZh": "狂热者光刃",
+  "rarity": "rare",
+  "slot": "weapon",
+  "stackable": false,
+  "description": "嗡鸣的能量刃，致敬某位热情过头的近战狂热者（原创命名）。",
+  "layer": "gear/weapon_zealot_blade.svg"
+}

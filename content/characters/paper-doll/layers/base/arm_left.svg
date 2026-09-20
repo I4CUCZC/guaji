@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- character's left = screen left -->
+  <rect x="14" y="30" width="8" height="16" fill="#718096"/>
+  <rect x="14" y="44" width="8" height="6" fill="#a0aec0"/>
+</svg>

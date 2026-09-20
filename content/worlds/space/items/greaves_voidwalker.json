@@ -1,0 +1,10 @@
+{
+  "id": "greaves_voidwalker",
+  "name": "Voidwalker Greaves",
+  "nameZh": "虚空行者护胫",
+  "rarity": "uncommon",
+  "slot": "legs",
+  "stackable": false,
+  "description": "磁吸靴底，适合在舰桥上踱步挂机。",
+  "layer": "gear/legs_voidwalker.svg"
+}

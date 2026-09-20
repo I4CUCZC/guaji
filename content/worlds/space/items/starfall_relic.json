@@ -1,0 +1,10 @@
+{
+  "id": "starfall_relic",
+  "name": "Starfall Relic",
+  "nameZh": "星陨圣物",
+  "rarity": "legendary",
+  "slot": "accessory",
+  "stackable": false,
+  "description": "传说中坠落自星门的碎片，挂机运气的具象化。",
+  "layer": "gear/accessory_starfall.svg"
+}

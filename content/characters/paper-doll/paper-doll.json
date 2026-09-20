@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "id": "paper-doll",
+    "name": "Idle Marine",
+    "nameZh": "挂机陆战队员",
+    "width": 128,
+    "height": 160,
+    "pixelScale": 2
+  },
+  "slots": ["head", "body", "arm_left", "arm_right", "legs", "weapon", "accessory"],
+  "layerOrder": [
+    "base/body.svg",
+    "base/legs.svg",
+    "base/arm_left.svg",
+    "base/arm_right.svg",
+    "base/head.svg",
+    "slot:legs",
+    "slot:body",
+    "slot:arm_left",
+    "slot:arm_right",
+    "slot:head",
+    "slot:weapon",
+    "slot:accessory"
+  ],
+  "baseLayers": {
+    "body": "base/body.svg",
+    "legs": "base/legs.svg",
+    "arm_left": "base/arm_left.svg",
+    "arm_right": "base/arm_right.svg",
+    "head": "base/head.svg"
+  }
+}

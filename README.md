@@ -1,97 +1,116 @@
 # 挂机桌宠 · Guaji Desktop Pet
 
-透明置顶的桌面挂机小宠物（Bongo Cat 风格）。  
-A transparent, always-on-top desktop idle companion (Bongo Cat–style).
+透明置顶的桌面挂机小宠物 + **星际世界 idle-gear MVP**。  
+Transparent desktop idle companion with a data-driven space-world gear grind.
 
-**架构 / Architecture：** 可移植的 Vite + TypeScript 核心（数据驱动 JSON + 素材）+ 薄 Electron 壳（窗口 / 输入转发）。核心不依赖 Phaser / Unity / Godot，后续可迁到浏览器或 Tauri。
+**架构：** Vite + TypeScript 核心（JSON + 素材，无重型游戏引擎）+ 薄 Electron 壳。
 
 ---
 
 ## 中文
 
-### 功能（MVP）
+### 功能（Idle-Gear MVP）
 
-- 透明、无边框、始终置顶的桌面浮层
-- 状态：`idle`（待机）、`typing`（敲击）、`click`（点击），超时回待机
-- 键盘 → 敲击动画；鼠标点击宠物 → 点击反应
-- 拖拽宠物移动窗口
-- 通过 `character.json` + 图片/SVG 扩展角色，无需改引擎
+1. **单一世界：** 星际世界（`content/worlds/space/`）。生化 / 中土仅留目录占位。
+2. **挂机战斗：** 运行中每约 1.5s 自动 tick：获得 XP，按概率从掉落表掷战利品。
+3. **稀有度：** 普通 / 优良 / 稀有 / 史诗 / 传说，UI 按颜色显示。
+4. **粉丝风味装备名：** 如「狂热者光刃」「极限战士式动力臂甲」「异形头骨战利品」等（原创命名，定义在 JSON）。
+5. **细部位装备：** head / body / arm_left / arm_right / legs / weapon / accessory，每槽一件。
+6. **像素纸娃娃：** 多层 SVG；装备后对应图层替换/叠加，外观可见变化。
+7. **存档：** 等级、XP、背包、装备写入 `localStorage`。
+
+早期 Bongo Cat 动画核心仍保留在 `src/core/`（`Companion` 等），当前 UI 以挂机装备面板为主。
 
 ### 环境
 
 - Node.js **≥ 18**（推荐 20+）
 - npm 9+
 
-### 安装
+### 安装与运行
 
 ```bash
 cd guaji-desktop-pet
 npm install
 ```
 
-### 运行
-
-**浏览器预览（推荐先测动画 / 反应）：**
+**浏览器预览（推荐先看挂机 / 装备 / 纸娃娃）：**
 
 ```bash
 npm run dev
 ```
 
-打开终端提示的地址（默认 `http://127.0.0.1:5173`）。在页面内按键或点击即可切换状态。
+打开 `http://127.0.0.1:5173`。挂机会自动开始；观察「最近掉落」与 XP 条；在背包点击可装备物品，纸娃娃图层会变；点装备栏可卸下。
 
-**Electron 透明置顶浮层：**
+**Electron 浮层面板：**
 
 ```bash
-# 开发：Vite 热更新 + Electron 窗口
-npm run electron:dev
-
-# 或：先构建再打开 Electron
-npm run electron
+npm run electron:dev   # Vite 热更新 + Electron
+# 或
+npm run electron       # 先 build 再启动
 ```
 
-单独构建前端：
+单独构建：
 
 ```bash
 npm run build
 ```
 
-### 如何添加 / 替换角色
+### 如何看到掉落与换装
 
-1. 在 `content/characters/` 下新建目录，例如 `content/characters/my-pet/`。
-2. 放入 `character.json` 与 `assets/` 图片（SVG / PNG 均可）。
-3. 修改 `src/renderer/main.ts` 里的 `CHARACTER_ID` 为你的目录名。
-4. 重新 `npm run dev` 或 `npm run electron:dev`。
+1. `npm run dev` 打开页面，状态显示「清剿中」。
+2. 等待数秒：XP 条上涨；有概率在「最近掉落」出现带颜色的物品名。
+3. 在「背包」点击带部位标签的装备（如武器 / 头部）→ 装备栏填入，左侧纸娃娃出现对应图层（光刃、护目镜、动力臂甲等）。
+4. 再点装备栏格子可卸下。存档自动保存，刷新页面保留进度。
 
-`character.json` 结构要点：
+### 如何添加一件装备 / 图层
 
-| 字段 | 说明 |
-|------|------|
-| `meta` | `id` / `name` / `nameZh` / `width` / `height` |
-| `defaultState` | 默认状态 id（通常 `idle`） |
-| `states[]` | `id`、`frames[]`（`src` + 可选 `durationMs`）、`fps`、`loop`、`timeoutMs` |
-| `reactions[]` | `trigger`: `keyboard` \| `mousedown` \| `mouseup` \| `mousemove` → `state` |
+1. **物品 JSON** — 新建 `content/worlds/space/items/<id>.json`：
 
-帧路径相对于角色目录，例如 `"src": "assets/idle.svg"`。
+```json
+{
+  "id": "my_helm",
+  "name": "My Helm",
+  "nameZh": "我的头盔",
+  "rarity": "rare",
+  "slot": "head",
+  "stackable": false,
+  "description": "说明文字",
+  "layer": "gear/head_my_helm.svg"
+}
+```
 
-替换邦戈猫画风：直接覆盖 `content/characters/bongo-cat/assets/*.svg`，保持文件名或同步改 JSON 即可。
+`slot` 为 `null` 表示不可装备（废料等）。`layer` 相对 `content/characters/paper-doll/layers/`。
+
+2. **掉落表** — 在 `content/worlds/space/drop_table.json` 的 `entries` 增加一行，`weight` 越大越常见。
+
+3. **注册 id** — 把 `<id>` 加入 `src/core/game/content-loader.ts` 的 `SPACE_ITEM_IDS`（保证能被加载）。
+
+4. **图层 SVG** — 在 `content/characters/paper-doll/layers/gear/` 放同名 SVG，`viewBox="0 0 64 80"`，`shape-rendering="crispEdges"`，与基底对齐。
+
+5. **槽位顺序** — 若新槽位，更新 `paper-doll.json` 的 `slots` / `layerOrder`（`slot:head` 等形式），以及 `src/core/game/types.ts` 的 `EquipSlot`。
+
+6. 重新 `npm run dev` 验证。
 
 ### 目录结构
 
 ```
 guaji-desktop-pet/
-├── content/characters/<id>/     # 角色 JSON + 素材
-├── electron/                    # 主进程 / preload（薄壳）
-├── src/core/                    # 动画播放器、反应引擎、Companion
-├── src/renderer/                # UI：加载角色、贴图、拖拽
+├── content/
+│   ├── worlds/
+│   │   ├── space/           # 星际世界 JSON + items
+│   │   ├── bio/             # 占位
+│   │   └── middle-earth/    # 占位
+│   └── characters/
+│       ├── bongo-cat/       # 早期动画角色（保留）
+│       └── paper-doll/      # 纸娃娃基底 + gear 图层
+├── electron/                # 薄壳（窗口略放大以容纳装备 UI）
+├── src/core/                # 动画伴侣 + idle/loot/inventory/equip/paper-doll
+│   └── game/                # 挂机引擎等纯逻辑
+├── src/renderer/            # UI 绑定
 ├── index.html
 ├── package.json
 └── vite.config.ts
 ```
-
-### 输入说明（Electron）
-
-- **点击 / 拖拽**：鼠标悬停在宠物上时可点可拖；移开后窗口点击穿透，不挡操作。
-- **键盘**：窗口能收到焦点时的按键会触发敲击；经典「全局后台键盘钩子」需原生模块，刻意未引入以保持依赖精简，可作为后续扩展。
 
 ### 脚本
 
@@ -108,78 +127,31 @@ guaji-desktop-pet/
 
 ## English
 
-### Features (MVP)
+### Idle-gear MVP
 
-- Transparent, frameless, always-on-top overlay
-- States: `idle`, `typing` (bongo), `click` — return to idle after a short timeout
-- Keyboard → typing animation; click the pet → click reaction
-- Drag the pet to move the window
-- Extend characters via JSON + assets — no engine lock-in
-
-### Requirements
-
-- Node.js **≥ 18** (20+ recommended)
-- npm 9+
-
-### Install
-
-```bash
-cd guaji-desktop-pet
-npm install
-```
+- One world: **Space** (`content/worlds/space/`). Bio / Middle-earth folders are stubs only.
+- Idle ticks (~1.5s): XP + chance to roll loot from a weighted drop table.
+- Rarity colors in UI; fan-flavor item names in JSON (original naming).
+- Equipment slots: head, body, arm_left, arm_right, legs, weapon, accessory.
+- Layered pixel SVG paper-doll updates when you equip gear.
+- Save: level / xp / inventory / equipment → `localStorage`.
 
 ### Run
 
-**Browser preview (great for testing animations):**
-
 ```bash
-npm run dev
+npm install
+npm run dev          # browser
+npm run electron:dev # Electron panel
+npm run build        # must succeed
 ```
 
-Open the URL Vite prints (default `http://127.0.0.1:5173`). Press keys or click to change states.
+### Add an item
 
-**Electron transparent overlay:**
-
-```bash
-npm run electron:dev   # Vite HMR + Electron
-# or
-npm run electron       # production build, then Electron
-```
-
-Build only:
-
-```bash
-npm run build
-```
-
-### Add / swap a character
-
-1. Create `content/characters/<your-id>/` with `character.json` and an `assets/` folder.
-2. Set `CHARACTER_ID` in `src/renderer/main.ts` to `<your-id>`.
-3. Restart `npm run dev` or `npm run electron:dev`.
-
-Frame `src` paths are relative to the character folder (e.g. `assets/idle.svg`).
-
-To re-skin the starter cat, replace files under `content/characters/bongo-cat/assets/` (keep names or update the JSON).
-
-### Layout
-
-```
-guaji-desktop-pet/
-├── content/characters/<id>/   # character.json + images
-├── electron/                  # main + preload (thin shell)
-├── src/core/                  # animation player, reaction engine
-├── src/renderer/              # UI loader / display
-├── index.html
-├── package.json
-└── vite.config.ts
-```
-
-### Electron input notes
-
-- **Mouse:** hover the pet to click/drag; outside the pet, the window is click-through.
-- **Keyboard:** keys are forwarded when the overlay can receive input. Full OS-global key hooks need a native addon and are intentionally omitted for a minimal dependency tree (easy Phase-2 addition).
+1. Add `content/worlds/space/items/<id>.json` with `slot` + `layer`.
+2. Add entry to `drop_table.json`.
+3. Append id to `SPACE_ITEM_IDS` in `src/core/game/content-loader.ts`.
+4. Drop matching SVG under `content/characters/paper-doll/layers/gear/`.
 
 ### License
 
-Project scaffolding is yours to use. Starter SVG art is original placeholder art for this repo.
+Scaffolding is free to use. Starter SVG art is original placeholder art for this repo.

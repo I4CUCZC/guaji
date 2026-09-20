@@ -1,6 +1,6 @@
 /**
- * Thin Electron shell — transparent overlay window + input forwarding.
- * Companion / animation logic stays in src/core (loaded by the renderer).
+ * Thin Electron shell — transparent / framed companion window + input forwarding.
+ * Companion / idle-gear logic stays in src/core (loaded by the renderer).
  */
 const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('node:path');
@@ -20,22 +20,25 @@ function sendInput(payload) {
 function createWindow() {
   const display = screen.getPrimaryDisplay();
   const { width: sw, height: sh } = display.workAreaSize;
-  const winW = 320;
-  const winH = 280;
+  // Slightly larger framed panel for usable gear UI (MVP)
+  const winW = 520;
+  const winH = 640;
 
   mainWindow = new BrowserWindow({
     width: winW,
     height: winH,
     x: Math.round(sw - winW - 24),
-    y: Math.round(sh - winH - 24),
+    y: Math.round(Math.max(24, sh - winH - 24)),
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    resizable: false,
+    resizable: true,
     maximizable: false,
     fullscreenable: false,
-    skipTaskbar: true,
-    hasShadow: false,
+    skipTaskbar: false,
+    hasShadow: true,
+    minWidth: 420,
+    minHeight: 520,
     backgroundColor: '#00000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -58,7 +61,6 @@ function createWindow() {
     mainWindow.loadFile(path.join(ROOT, 'dist', 'index.html'));
   }
 
-  // Keyboard while the overlay can receive focus / input
   mainWindow.webContents.on('before-input-event', (_event, input) => {
     if (input.type === 'keyDown' && !input.isAutoRepeat) {
       sendInput({

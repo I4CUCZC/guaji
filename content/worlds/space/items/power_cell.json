@@ -1,0 +1,10 @@
+{
+  "id": "power_cell",
+  "name": "Power Cell",
+  "nameZh": "动力电池",
+  "rarity": "common",
+  "slot": null,
+  "stackable": true,
+  "description": "嗡嗡作响的标准能量单元。",
+  "layer": null
+}

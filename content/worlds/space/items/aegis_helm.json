@@ -1,0 +1,10 @@
+{
+  "id": "aegis_helm",
+  "name": "Aegis Pattern Helm",
+  "nameZh": "神盾式战盔",
+  "rarity": "epic",
+  "slot": "head",
+  "stackable": false,
+  "description": "厚重面罩，灵感来自传说中的星际骑士。",
+  "layer": "gear/head_aegis_helm.svg"
+}

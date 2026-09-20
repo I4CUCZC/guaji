@@ -1,0 +1,10 @@
+{
+  "id": "void_goggles",
+  "name": "Void Goggles",
+  "nameZh": "虚空护目镜",
+  "rarity": "uncommon",
+  "slot": "head",
+  "stackable": false,
+  "description": "滤掉辐射，也滤掉对现实的怀疑。",
+  "layer": "gear/head_void_goggles.svg"
+}

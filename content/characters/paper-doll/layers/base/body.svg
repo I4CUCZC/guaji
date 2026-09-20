@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
+  <!-- torso undersuit -->
+  <rect x="22" y="28" width="20" height="22" fill="#4a5568"/>
+  <rect x="24" y="30" width="16" height="18" fill="#718096"/>
+  <rect x="28" y="34" width="8" height="6" fill="#2d3748"/>
+</svg>

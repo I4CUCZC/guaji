@@ -1,14 +1,6 @@
-# Characters / 角色包
+# characters/
 
-Each subdirectory is one character pack:
+- `bongo-cat/` — 早期桌宠动画角色（保留，未在当前 idle-gear UI 中使用）
+- `paper-doll/` — 像素纸娃娃基底 + 装备图层（当前 MVP 使用）
 
-```
-<id>/
-  character.json
-  assets/
-    *.svg | *.png | ...
-```
-
-Point `CHARACTER_ID` in `src/renderer/main.ts` at the folder name.
-
-Starter pack: `bongo-cat/`.
+未来世界可在此增加对应外观包。

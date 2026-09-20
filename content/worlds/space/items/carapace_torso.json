@@ -1,0 +1,10 @@
+{
+  "id": "carapace_torso",
+  "name": "Carapace Vest",
+  "nameZh": "甲壳式胸甲",
+  "rarity": "uncommon",
+  "slot": "body",
+  "stackable": false,
+  "description": "轻量化复合板甲，挂机时也显得很正式。",
+  "layer": "gear/body_carapace.svg"
+}

@@ -1,7 +1,7 @@
 {
   "name": "guaji-desktop-pet",
-  "version": "1.0.0",
-  "description": "Desktop idle companion (Bongo Cat–like) — transparent always-on-top overlay",
+  "version": "1.1.0",
+  "description": "Desktop idle companion + space-world idle gear MVP (Vite + TS + thin Electron)",
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",

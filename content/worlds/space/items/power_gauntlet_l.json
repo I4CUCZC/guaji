@@ -1,0 +1,10 @@
+{
+  "id": "power_gauntlet_l",
+  "name": "Extreme Warrior Power Gauntlet (L)",
+  "nameZh": "极限战士式动力臂甲·左",
+  "rarity": "rare",
+  "slot": "arm_left",
+  "stackable": false,
+  "description": "粉丝风味的动力伺服臂甲，左臂版。",
+  "layer": "gear/arm_left_power.svg"
+}
