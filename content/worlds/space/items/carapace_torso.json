@@ -6,5 +6,13 @@
   "slot": "body",
   "stackable": false,
   "description": "轻量化复合板甲，挂机时也显得很正式。",
-  "layer": "gear/body_carapace.svg"
+  "layer": "gear/body_carapace.svg",
+  "skill": {
+    "id": "skill_plate_brace",
+    "name": "Plate Brace",
+    "nameZh": "板甲撑持",
+    "description": "回复少量生命。",
+    "cooldownMs": 11000,
+    "effect": { "type": "heal", "amount": 12 }
+  }
 }

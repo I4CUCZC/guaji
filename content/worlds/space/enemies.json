@@ -1,0 +1,160 @@
+{
+  "worldId": "space",
+  "breatherMs": 2200,
+  "playerAttackIntervalMs": 900,
+  "enemies": [
+    {
+      "id": "void_mite",
+      "name": "Void Mite",
+      "nameZh": "虚空异虫",
+      "tier": 1,
+      "minLevel": 1,
+      "maxLevel": 4,
+      "hp": 18,
+      "attack": 2,
+      "attackIntervalMs": 1100,
+      "xp": { "min": 4, "max": 7 },
+      "weight": 12,
+      "drops": [
+        { "itemId": "scrap_plasteel", "weight": 55, "rarity": "common" },
+        { "itemId": "power_cell", "weight": 35, "rarity": "common" },
+        { "itemId": "void_goggles", "weight": 8, "rarity": "uncommon" },
+        { "itemId": "carapace_torso", "weight": 2, "rarity": "uncommon" }
+      ]
+    },
+    {
+      "id": "scrap_drone",
+      "name": "Scrap Drone",
+      "nameZh": "废铁无人机",
+      "tier": 1,
+      "minLevel": 1,
+      "maxLevel": 5,
+      "hp": 22,
+      "attack": 3,
+      "attackIntervalMs": 1000,
+      "xp": { "min": 5, "max": 8 },
+      "weight": 10,
+      "drops": [
+        { "itemId": "scrap_plasteel", "weight": 50, "rarity": "common" },
+        { "itemId": "power_cell", "weight": 32, "rarity": "common" },
+        { "itemId": "greaves_voidwalker", "weight": 12, "rarity": "uncommon" },
+        { "itemId": "void_goggles", "weight": 6, "rarity": "uncommon" }
+      ]
+    },
+    {
+      "id": "rebel_scout",
+      "name": "Rebel Scout",
+      "nameZh": "叛军斥候",
+      "tier": 2,
+      "minLevel": 3,
+      "maxLevel": 8,
+      "hp": 36,
+      "attack": 5,
+      "attackIntervalMs": 950,
+      "xp": { "min": 8, "max": 14 },
+      "weight": 10,
+      "drops": [
+        { "itemId": "scrap_plasteel", "weight": 30, "rarity": "common" },
+        { "itemId": "power_cell", "weight": 22, "rarity": "common" },
+        { "itemId": "void_goggles", "weight": 16, "rarity": "uncommon" },
+        { "itemId": "carapace_torso", "weight": 14, "rarity": "uncommon" },
+        { "itemId": "greaves_voidwalker", "weight": 10, "rarity": "uncommon" },
+        { "itemId": "power_gauntlet_l", "weight": 4, "rarity": "rare" },
+        { "itemId": "power_gauntlet_r", "weight": 4, "rarity": "rare" }
+      ]
+    },
+    {
+      "id": "void_floater",
+      "name": "Void Floater",
+      "nameZh": "虚空浮游虫",
+      "tier": 2,
+      "minLevel": 4,
+      "maxLevel": 10,
+      "hp": 42,
+      "attack": 6,
+      "attackIntervalMs": 900,
+      "xp": { "min": 10, "max": 16 },
+      "weight": 9,
+      "drops": [
+        { "itemId": "power_cell", "weight": 28, "rarity": "common" },
+        { "itemId": "scrap_plasteel", "weight": 20, "rarity": "common" },
+        { "itemId": "carapace_torso", "weight": 16, "rarity": "uncommon" },
+        { "itemId": "void_goggles", "weight": 12, "rarity": "uncommon" },
+        { "itemId": "pulse_blade", "weight": 8, "rarity": "rare" },
+        { "itemId": "power_gauntlet_r", "weight": 8, "rarity": "rare" },
+        { "itemId": "power_gauntlet_l", "weight": 6, "rarity": "rare" },
+        { "itemId": "voidbeast_trophy", "weight": 2, "rarity": "epic" }
+      ]
+    },
+    {
+      "id": "servo_skull",
+      "name": "Rogue Servo Skull",
+      "nameZh": "失控伺服骷髅",
+      "tier": 3,
+      "minLevel": 6,
+      "maxLevel": 14,
+      "hp": 60,
+      "attack": 8,
+      "attackIntervalMs": 850,
+      "xp": { "min": 14, "max": 22 },
+      "weight": 8,
+      "drops": [
+        { "itemId": "power_cell", "weight": 18, "rarity": "common" },
+        { "itemId": "scrap_plasteel", "weight": 12, "rarity": "common" },
+        { "itemId": "greaves_voidwalker", "weight": 14, "rarity": "uncommon" },
+        { "itemId": "carapace_torso", "weight": 12, "rarity": "uncommon" },
+        { "itemId": "pulse_blade", "weight": 14, "rarity": "rare" },
+        { "itemId": "power_gauntlet_l", "weight": 10, "rarity": "rare" },
+        { "itemId": "power_gauntlet_r", "weight": 10, "rarity": "rare" },
+        { "itemId": "aegis_helm", "weight": 6, "rarity": "epic" },
+        { "itemId": "voidbeast_trophy", "weight": 4, "rarity": "epic" }
+      ]
+    },
+    {
+      "id": "rift_stalker",
+      "name": "Rift Stalker",
+      "nameZh": "裂隙猎手",
+      "tier": 4,
+      "minLevel": 9,
+      "maxLevel": 20,
+      "hp": 90,
+      "attack": 12,
+      "attackIntervalMs": 800,
+      "xp": { "min": 20, "max": 32 },
+      "weight": 6,
+      "drops": [
+        { "itemId": "power_cell", "weight": 12, "rarity": "common" },
+        { "itemId": "void_goggles", "weight": 10, "rarity": "uncommon" },
+        { "itemId": "pulse_blade", "weight": 16, "rarity": "rare" },
+        { "itemId": "power_gauntlet_l", "weight": 12, "rarity": "rare" },
+        { "itemId": "power_gauntlet_r", "weight": 12, "rarity": "rare" },
+        { "itemId": "aegis_helm", "weight": 14, "rarity": "epic" },
+        { "itemId": "voidbeast_trophy", "weight": 12, "rarity": "epic" },
+        { "itemId": "starfall_relic", "weight": 4, "rarity": "legendary" }
+      ]
+    },
+    {
+      "id": "star_wraith",
+      "name": "Star Wraith",
+      "nameZh": "星门幽影",
+      "tier": 5,
+      "minLevel": 12,
+      "maxLevel": 99,
+      "hp": 130,
+      "attack": 16,
+      "attackIntervalMs": 750,
+      "xp": { "min": 28, "max": 42 },
+      "weight": 4,
+      "drops": [
+        { "itemId": "pulse_blade", "weight": 14, "rarity": "rare" },
+        { "itemId": "power_gauntlet_l", "weight": 10, "rarity": "rare" },
+        { "itemId": "power_gauntlet_r", "weight": 10, "rarity": "rare" },
+        { "itemId": "aegis_helm", "weight": 18, "rarity": "epic" },
+        { "itemId": "voidbeast_trophy", "weight": 18, "rarity": "epic" },
+        { "itemId": "starfall_relic", "weight": 12, "rarity": "legendary" },
+        { "itemId": "carapace_torso", "weight": 8, "rarity": "uncommon" },
+        { "itemId": "power_cell", "weight": 10, "rarity": "common" }
+      ]
+    }
+  ]
+}

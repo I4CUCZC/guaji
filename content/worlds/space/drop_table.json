@@ -8,8 +8,8 @@
     { "itemId": "greaves_voidwalker", "weight": 10, "rarity": "uncommon" },
     { "itemId": "power_gauntlet_l", "weight": 8, "rarity": "rare" },
     { "itemId": "power_gauntlet_r", "weight": 8, "rarity": "rare" },
-    { "itemId": "zealot_blade", "weight": 5, "rarity": "rare" },
-    { "itemId": "xeno_skull", "weight": 3, "rarity": "epic" },
+    { "itemId": "pulse_blade", "weight": 5, "rarity": "rare" },
+    { "itemId": "voidbeast_trophy", "weight": 3, "rarity": "epic" },
     { "itemId": "aegis_helm", "weight": 2, "rarity": "epic" },
     { "itemId": "starfall_relic", "weight": 1, "rarity": "legendary" }
   ]

@@ -5,6 +5,14 @@
   "rarity": "epic",
   "slot": "head",
   "stackable": false,
-  "description": "厚重面罩，灵感来自传说中的星际骑士。",
-  "layer": "gear/head_aegis_helm.svg"
+  "description": "厚重面罩与护目透镜，灵感来自传说中的星际骑士。",
+  "layer": "gear/head_aegis_helm.svg",
+  "skill": {
+    "id": "skill_aegis_barrier",
+    "name": "Aegis Barrier",
+    "nameZh": "神盾屏障",
+    "description": "生成护盾，抵挡接下来的伤害。",
+    "cooldownMs": 14000,
+    "effect": { "type": "shield", "amount": 25 }
+  }
 }

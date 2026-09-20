@@ -1,10 +1,18 @@
 {
   "id": "power_gauntlet_r",
-  "name": "Extreme Warrior Power Gauntlet (R)",
-  "nameZh": "极限战士式动力臂甲·右",
+  "name": "Void Servo Gauntlet (R)",
+  "nameZh": "虚空伺服臂甲·右",
   "rarity": "rare",
   "slot": "arm_right",
   "stackable": false,
-  "description": "粉丝风味的动力伺服臂甲，右臂版。",
-  "layer": "gear/arm_right_power.svg"
+  "description": "伺服增幅的动力臂甲，右臂版。",
+  "layer": "gear/arm_right_power.svg",
+  "skill": {
+    "id": "skill_servo_punch",
+    "name": "Servo Punch",
+    "nameZh": "伺服重拳",
+    "description": "追加一次重击伤害。",
+    "cooldownMs": 9000,
+    "effect": { "type": "damage", "amount": 14 }
+  }
 }

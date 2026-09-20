@@ -348,3 +348,189 @@ body.browser-demo {
   height: 100%;
   pointer-events: none;
 }
+
+/* —— Encounter combat —— */
+.combat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.combat-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fbd38d;
+}
+
+.hp-row {
+  display: grid;
+  grid-template-columns: 18px 1fr 52px;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.hp-label {
+  opacity: 0.6;
+}
+
+.hp-bar {
+  height: 10px;
+  border-radius: 5px;
+  background: #1a202c;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hp-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.15s linear;
+}
+
+.hp-bar.enemy .hp-fill {
+  background: linear-gradient(90deg, #c53030, #fc8181);
+}
+
+.hp-bar.player .hp-fill {
+  background: linear-gradient(90deg, #2b6cb0, #63b3ed);
+}
+
+.hp-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+  font-size: 10px;
+}
+
+.shield-line {
+  min-height: 14px;
+  color: #90cdf4;
+}
+
+.combat-log {
+  max-height: 72px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.log-line {
+  font-size: 10px;
+  line-height: 1.35;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.log-encounter {
+  color: #fbd38d;
+  font-weight: 600;
+}
+.log-damage_out {
+  color: #9ae6b4;
+}
+.log-damage_in {
+  color: #fc8181;
+}
+.log-skill {
+  color: #b794f4;
+}
+.log-loot {
+  color: #ecc94b;
+}
+.log-system {
+  color: #a0aec0;
+}
+
+/* —— Skill bar —— */
+.skill-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.skill-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px;
+  min-height: 48px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font-size: 11px;
+}
+
+.skill-slot:hover {
+  border-color: rgba(159, 122, 234, 0.55);
+}
+
+.skill-slot.picking {
+  border-color: #9f7aea;
+  box-shadow: 0 0 0 1px rgba(159, 122, 234, 0.4);
+}
+
+.skill-slot.ready {
+  border-color: rgba(72, 187, 120, 0.55);
+  background: rgba(72, 187, 120, 0.08);
+}
+
+.skill-slot.cooling {
+  opacity: 0.75;
+}
+
+.skill-slot.empty {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.skill-name {
+  font-weight: 600;
+}
+
+.skill-cd {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.skill-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.skill-pick-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #2d3748;
+  color: #edf2f7;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.skill-pick-btn:hover {
+  background: #4a5568;
+}
+
+.main-row {
+  min-height: 220px;
+}
+
+.inv-list {
+  max-height: 140px;
+}

@@ -6,5 +6,13 @@
   "slot": "accessory",
   "stackable": false,
   "description": "传说中坠落自星门的碎片，挂机运气的具象化。",
-  "layer": "gear/accessory_starfall.svg"
+  "layer": "gear/accessory_starfall.svg",
+  "skill": {
+    "id": "skill_starfall_mend",
+    "name": "Starfall Mend",
+    "nameZh": "星陨疗愈",
+    "description": "回复大量生命值。",
+    "cooldownMs": 16000,
+    "effect": { "type": "heal", "amount": 35 }
+  }
 }

@@ -1,9 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
-  <rect x="20" y="8" width="24" height="22" fill="#2d3748"/>
-  <rect x="22" y="10" width="20" height="18" fill="#4a5568"/>
-  <rect x="24" y="16" width="16" height="6" fill="#1a202c"/>
-  <rect x="26" y="17" width="5" height="4" fill="#9ae6b4"/>
-  <rect x="33" y="17" width="5" height="4" fill="#9ae6b4"/>
-  <rect x="28" y="6" width="8" height="4" fill="#718096"/>
-  <rect x="30" y="4" width="4" height="4" fill="#e53e3e"/>
+  <!-- full helm -->
+  <rect x="20" y="7" width="24" height="22" fill="#1a202c"/>
+  <rect x="22" y="9" width="20" height="18" fill="#4a5568"/>
+  <rect x="24" y="11" width="16" height="14" fill="#718096"/>
+  <!-- crest ridge -->
+  <rect x="28" y="5" width="8" height="5" fill="#2d3748"/>
+  <rect x="30" y="3" width="4" height="4" fill="#e53e3e"/>
+  <rect x="31" y="4" width="2" height="2" fill="#fc8181"/>
+  <!-- visor slit -->
+  <rect x="24" y="15" width="16" height="5" fill="#1a202c"/>
+  <rect x="25" y="16" width="6" height="3" fill="#9ae6b4"/>
+  <rect x="33" y="16" width="6" height="3" fill="#9ae6b4"/>
+  <rect x="26" y="16" width="2" height="1" fill="#c6f6d5"/>
+  <rect x="34" y="16" width="2" height="1" fill="#c6f6d5"/>
+  <!-- cheek guards -->
+  <rect x="20" y="18" width="4" height="8" fill="#2d3748"/>
+  <rect x="40" y="18" width="4" height="8" fill="#2d3748"/>
+  <!-- chin -->
+  <rect x="26" y="24" width="12" height="4" fill="#2d3748"/>
+  <rect x="28" y="25" width="8" height="2" fill="#4a5568"/>
 </svg>

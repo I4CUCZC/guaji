@@ -1,0 +1,18 @@
+{
+  "id": "pulse_blade",
+  "name": "Pulse Energy Blade",
+  "nameZh": "脉冲光刃",
+  "rarity": "rare",
+  "slot": "weapon",
+  "stackable": false,
+  "description": "嗡鸣的能量短刃，近战挂机的可靠伙伴。",
+  "layer": "gear/weapon_pulse_blade.svg",
+  "skill": {
+    "id": "skill_pulse_slash",
+    "name": "Pulse Slash",
+    "nameZh": "脉冲斩",
+    "description": "对当前敌人造成一击爆发伤害。",
+    "cooldownMs": 8000,
+    "effect": { "type": "damage", "amount": 18 }
+  }
+}

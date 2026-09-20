@@ -1,0 +1,18 @@
+{
+  "id": "voidbeast_trophy",
+  "name": "Voidbeast Trophy",
+  "nameZh": "虚空兽头骨",
+  "rarity": "epic",
+  "slot": "accessory",
+  "stackable": false,
+  "description": "挂在肩侧的异星兽头骨，证明你真的在挂机。",
+  "layer": "gear/accessory_voidbeast_trophy.svg",
+  "skill": {
+    "id": "skill_void_howl",
+    "name": "Void Howl",
+    "nameZh": "虚空咆哮",
+    "description": "释放压迫感，对敌人造成高额伤害。",
+    "cooldownMs": 12000,
+    "effect": { "type": "damage", "amount": 28 }
+  }
+}

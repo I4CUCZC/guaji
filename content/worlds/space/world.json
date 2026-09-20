@@ -2,10 +2,11 @@
   "id": "space",
   "name": "Space",
   "nameZh": "星际世界",
-  "description": "在虚空边缘挂机清剿异形与叛军残党。",
+  "description": "在虚空边缘遭遇敌人，自动交战直至一方倒下。",
   "tickMs": 1500,
   "xpPerTick": { "min": 3, "max": 8 },
   "lootChance": 0.35,
   "dropTable": "drop_table.json",
-  "enemyFlavor": ["异形幼体", "叛军斥候", "虚空浮游虫", "失控伺服骷髅"]
+  "enemies": "enemies.json",
+  "enemyFlavor": ["虚空异虫", "叛军斥候", "虚空浮游虫", "失控伺服骷髅"]
 }

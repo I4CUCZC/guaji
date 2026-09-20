@@ -12,6 +12,7 @@ import {
   EQUIP_SLOTS,
   RARITY_LABEL_ZH,
   SPACE_ITEM_IDS,
+  SKILL_BAR_SIZE,
 } from '@core/index';
 import type {
   EquipSlot,
@@ -44,6 +45,16 @@ function itemLabel(item: ItemDef): string {
   return `${item.nameZh}〔${RARITY_LABEL_ZH[item.rarity]}〕`;
 }
 
+function hpPct(cur: number, max: number): number {
+  if (max <= 0) return 0;
+  return Math.max(0, Math.min(100, (cur / max) * 100));
+}
+
+function formatCd(ms: number): string {
+  if (ms <= 0) return '就绪';
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
 async function boot(): Promise<void> {
   const app = document.getElementById('app');
   if (!app) throw new Error('#app missing');
@@ -51,7 +62,6 @@ async function boot(): Promise<void> {
   const bridge = createBridge();
   document.body.classList.add(bridge.isElectron ? 'electron' : 'browser-demo');
 
-  // Electron gear panel needs mouse; disable click-through for MVP panel
   if (bridge.isElectron && bridge.setIgnoreMouseEvents) {
     bridge.setIgnoreMouseEvents(false);
   }
@@ -69,6 +79,7 @@ async function boot(): Promise<void> {
   const engine = new IdleEngine({
     world: content.world,
     dropTable: content.dropTable,
+    enemiesPack: content.enemiesPack,
     itemsById: content.itemsById,
     save,
     persist: true,
@@ -78,7 +89,7 @@ async function boot(): Promise<void> {
   panel.className = 'panel';
   panel.innerHTML = `
     <div class="panel-header">
-      <h1>挂机桌宠 · 星际挂机</h1>
+      <h1>挂机桌宠 · 星际遭遇</h1>
       <span class="world-badge" data-world></span>
     </div>
     <div class="main-row">
@@ -95,12 +106,31 @@ async function boot(): Promise<void> {
           <div>等级 <strong data-level>1</strong> · XP <span data-xp>0</span>/<span data-xp-next>50</span></div>
           <div class="xp-bar"><div class="xp-fill" data-xp-fill></div></div>
         </div>
-        <div class="meta" data-tick-msg>等待战斗…</div>
+        <div class="combat-block">
+          <div class="combat-title" data-enemy-name>等待遭遇…</div>
+          <div class="hp-row">
+            <span class="hp-label">敌</span>
+            <div class="hp-bar enemy"><div class="hp-fill" data-enemy-hp></div></div>
+            <span class="hp-num" data-enemy-hp-num>—</span>
+          </div>
+          <div class="hp-row">
+            <span class="hp-label">我</span>
+            <div class="hp-bar player"><div class="hp-fill" data-player-hp></div></div>
+            <span class="hp-num" data-player-hp-num>—</span>
+          </div>
+          <div class="shield-line meta" data-shield></div>
+          <div class="combat-log" data-combat-log></div>
+        </div>
         <div>
           <div class="section-title">最近掉落</div>
           <div class="last-drops" data-drops></div>
         </div>
       </div>
+    </div>
+    <div class="no-drag">
+      <div class="section-title">技能栏（装备带技能的物品后可装配 · 战斗中自动释放）</div>
+      <div class="skill-bar" data-skill-bar></div>
+      <div class="skill-picker meta" data-skill-picker></div>
     </div>
     <div class="no-drag">
       <div class="section-title">装备栏</div>
@@ -114,7 +144,7 @@ async function boot(): Promise<void> {
       <button type="button" class="primary" data-toggle>暂停挂机</button>
       <button type="button" data-reset>重置存档</button>
     </div>
-    <p class="hint no-drag">挂机自动战斗获得经验与战利品。装备后纸娃娃图层会切换。数据保存在 localStorage。</p>
+    <p class="hint no-drag">遭遇敌人后双方血条可见，自动对砍数秒；打赢才掉落。装备带技能的道具后，点技能栏空位装配（共 3 格）。数据保存在 localStorage。</p>
   `;
   app.appendChild(panel);
 
@@ -127,8 +157,16 @@ async function boot(): Promise<void> {
     xp: panel.querySelector('[data-xp]') as HTMLElement,
     xpNext: panel.querySelector('[data-xp-next]') as HTMLElement,
     xpFill: panel.querySelector('[data-xp-fill]') as HTMLElement,
-    tickMsg: panel.querySelector('[data-tick-msg]') as HTMLElement,
+    enemyName: panel.querySelector('[data-enemy-name]') as HTMLElement,
+    enemyHp: panel.querySelector('[data-enemy-hp]') as HTMLElement,
+    enemyHpNum: panel.querySelector('[data-enemy-hp-num]') as HTMLElement,
+    playerHp: panel.querySelector('[data-player-hp]') as HTMLElement,
+    playerHpNum: panel.querySelector('[data-player-hp-num]') as HTMLElement,
+    shield: panel.querySelector('[data-shield]') as HTMLElement,
+    combatLog: panel.querySelector('[data-combat-log]') as HTMLElement,
     drops: panel.querySelector('[data-drops]') as HTMLElement,
+    skillBar: panel.querySelector('[data-skill-bar]') as HTMLElement,
+    skillPicker: panel.querySelector('[data-skill-picker]') as HTMLElement,
     equip: panel.querySelector('[data-equip]') as HTMLElement,
     inv: panel.querySelector('[data-inv]') as HTMLElement,
     toggle: panel.querySelector('[data-toggle]') as HTMLButtonElement,
@@ -136,6 +174,8 @@ async function boot(): Promise<void> {
   };
 
   els.world.textContent = content.world.nameZh;
+
+  let pickSlot: number | null = null;
 
   function resolveDollAsset(src: string): string {
     try {
@@ -158,6 +198,121 @@ async function boot(): Promise<void> {
     }
   }
 
+  function renderCombat(snap: GameSnapshot): void {
+    const c = snap.combat;
+    const enemy = c.enemy;
+    if (c.phase === 'fighting' && enemy) {
+      els.enemyName.textContent = `遭遇了${enemy.nameZh}`;
+      els.enemyHp.style.width = `${hpPct(enemy.hp, enemy.maxHp)}%`;
+      els.enemyHpNum.textContent = `${enemy.hp}/${enemy.maxHp}`;
+    } else if (c.phase === 'breather') {
+      els.enemyName.textContent = '喘息中…下一场即将开始';
+      els.enemyHp.style.width = '0%';
+      els.enemyHpNum.textContent = '—';
+    } else {
+      els.enemyName.textContent = '已暂停';
+      els.enemyHp.style.width = '0%';
+      els.enemyHpNum.textContent = '—';
+    }
+
+    els.playerHp.style.width = `${hpPct(c.playerHp, c.playerMaxHp)}%`;
+    els.playerHpNum.textContent = `${c.playerHp}/${c.playerMaxHp}`;
+    els.shield.textContent =
+      c.playerShield > 0 ? `护盾 ${c.playerShield}` : '';
+
+    els.combatLog.replaceChildren();
+    for (const line of c.log.slice(0, 5)) {
+      const div = document.createElement('div');
+      div.className = `log-line log-${line.kind}`;
+      div.textContent = line.text;
+      els.combatLog.appendChild(div);
+    }
+    if (c.log.length === 0) {
+      const div = document.createElement('div');
+      div.className = 'log-line meta';
+      div.textContent = '战斗日志将显示在这里';
+      els.combatLog.appendChild(div);
+    }
+  }
+
+  function renderSkillBar(snap: GameSnapshot): void {
+    els.skillBar.replaceChildren();
+    for (let i = 0; i < SKILL_BAR_SIZE; i++) {
+      const slot = snap.combat.skillSlots[i];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'skill-slot';
+      if (pickSlot === i) btn.classList.add('picking');
+      if (slot?.skill) {
+        btn.classList.toggle('ready', slot.ready);
+        btn.classList.toggle('cooling', !slot.ready);
+        const name = document.createElement('span');
+        name.className = 'skill-name';
+        name.textContent = slot.skill.nameZh;
+        const cd = document.createElement('span');
+        cd.className = 'skill-cd';
+        cd.textContent = slot.ready ? '就绪' : formatCd(slot.cooldownRemainingMs);
+        btn.append(name, cd);
+        btn.title = `${slot.skill.description ?? ''}\n点击施放 / 再点可更换`;
+        btn.addEventListener('click', () => {
+          if (slot.ready && snap.combat.phase === 'fighting') {
+            engine.useSkill(slot.skill!.id);
+          } else {
+            pickSlot = pickSlot === i ? null : i;
+            renderSkillPicker(engine.getSnapshot());
+            renderSkillBar(engine.getSnapshot());
+          }
+        });
+      } else {
+        btn.classList.add('empty');
+        btn.innerHTML = `<span class="skill-name">空位 ${i + 1}</span><span class="skill-cd">点击装配</span>`;
+        btn.addEventListener('click', () => {
+          pickSlot = pickSlot === i ? null : i;
+          renderSkillPicker(engine.getSnapshot());
+          renderSkillBar(engine.getSnapshot());
+        });
+      }
+      els.skillBar.appendChild(btn);
+    }
+  }
+
+  function renderSkillPicker(snap: GameSnapshot): void {
+    els.skillPicker.replaceChildren();
+    if (pickSlot === null) {
+      els.skillPicker.textContent =
+        snap.availableSkills.length === 0
+          ? '先装备带技能的装备（光刃 / 臂甲 / 胸甲 / 头盔 / 圣物等）'
+          : '点击上方技能空位，再选择要放入的技能';
+      return;
+    }
+    const label = document.createElement('div');
+    label.textContent = `为第 ${pickSlot + 1} 格选择技能：`;
+    els.skillPicker.appendChild(label);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'skill-pick-btn';
+    clearBtn.textContent = '清空此格';
+    clearBtn.addEventListener('click', () => {
+      engine.setSkillBarSlot(pickSlot!, null);
+      pickSlot = null;
+    });
+    els.skillPicker.appendChild(clearBtn);
+
+    for (const skill of snap.availableSkills) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'skill-pick-btn';
+      btn.textContent = `${skill.nameZh}（CD ${(skill.cooldownMs / 1000).toFixed(0)}秒）`;
+      btn.title = skill.description ?? '';
+      btn.addEventListener('click', () => {
+        engine.setSkillBarSlot(pickSlot!, skill.id);
+        pickSlot = null;
+      });
+      els.skillPicker.appendChild(btn);
+    }
+  }
+
   function renderEquip(snap: GameSnapshot): void {
     els.equip.replaceChildren();
     for (const slot of EQUIP_SLOTS) {
@@ -171,8 +326,12 @@ async function boot(): Promise<void> {
       span.className = 'slot-item';
       if (item) {
         span.classList.add(rarityClass(item.rarity));
-        span.textContent = item.nameZh;
-        btn.title = '点击卸下';
+        span.textContent = item.skill
+          ? `${item.nameZh}★`
+          : item.nameZh;
+        btn.title = item.skill
+          ? `技能：${item.skill.nameZh} — 点击卸下`
+          : '点击卸下';
       } else {
         span.textContent = '空';
         span.style.opacity = '0.4';
@@ -182,7 +341,11 @@ async function boot(): Promise<void> {
         if (!snap.equipment[slot]) return;
         const s = engine.getSave();
         const result = unequipSlot(s.inventory, s.equipment, slot);
-        engine.replaceSave({ ...s, inventory: result.inventory, equipment: result.equipment });
+        engine.replaceSave({
+          ...s,
+          inventory: result.inventory,
+          equipment: result.equipment,
+        });
       });
       els.equip.appendChild(btn);
     }
@@ -198,7 +361,6 @@ async function boot(): Promise<void> {
       return;
     }
 
-    // Aggregate stackables for display
     const rows: { item: ItemDef; qty: number; equippable: boolean }[] = [];
     const seenStack = new Map<string, number>();
     for (const entry of snap.inventory) {
@@ -215,7 +377,6 @@ async function boot(): Promise<void> {
       if (item) rows.push({ item, qty, equippable: !!item.slot });
     }
 
-    // Sort: equippable first, then rarity, then name
     const rarityRank: Record<Rarity, number> = {
       legendary: 5,
       epic: 4,
@@ -235,7 +396,8 @@ async function boot(): Promise<void> {
       btn.disabled = !row.equippable;
       const name = document.createElement('span');
       name.className = rarityClass(row.item.rarity);
-      name.textContent = itemLabel(row.item);
+      const skillMark = row.item.skill ? '★' : '';
+      name.textContent = `${itemLabel(row.item)}${skillMark}`;
       const qty = document.createElement('span');
       qty.className = 'qty';
       qty.textContent = row.equippable
@@ -245,7 +407,9 @@ async function boot(): Promise<void> {
         : `×${row.qty}`;
       if (row.item.stackable) qty.textContent = `×${row.qty}`;
       btn.append(name, qty);
-      btn.title = row.item.description ?? '';
+      btn.title = row.item.skill
+        ? `${row.item.description ?? ''}\n技能：${row.item.skill.nameZh}`
+        : row.item.description ?? '';
       if (row.equippable) {
         btn.addEventListener('click', () => {
           const s = engine.getSave();
@@ -285,29 +449,27 @@ async function boot(): Promise<void> {
     }
   }
 
-  function renderAll(snap: GameSnapshot, tick: TickResult | null): void {
+  function renderAll(snap: GameSnapshot, _tick: TickResult | null): void {
     const killing = snap.idleStatus === 'killing';
     els.dot.classList.toggle('paused', !killing);
-    els.status.textContent = killing ? '清剿中 / killing' : '已暂停';
+    if (!killing) {
+      els.status.textContent = '已暂停';
+    } else if (snap.combat.phase === 'fighting') {
+      els.status.textContent = '交战中';
+    } else {
+      els.status.textContent = '搜寻中';
+    }
     els.level.textContent = String(snap.level);
     els.xp.textContent = String(snap.xp);
     els.xpNext.textContent = String(snap.xpToNext);
-    const pct = snap.xpToNext > 0 ? Math.min(100, (snap.xp / snap.xpToNext) * 100) : 0;
+    const pct =
+      snap.xpToNext > 0 ? Math.min(100, (snap.xp / snap.xpToNext) * 100) : 0;
     els.xpFill.style.width = `${pct}%`;
     els.toggle.textContent = killing ? '暂停挂机' : '继续挂机';
 
-    if (tick) {
-      let msg = `击败 ${tick.enemyFlavor} · +${tick.xpGained} XP`;
-      if (tick.leveledUp) msg += ` · 升级！→ Lv.${tick.levelAfter}`;
-      if (tick.loot) msg += ` · 掉落 ${tick.loot.nameZh}`;
-      els.tickMsg.textContent = msg;
-      if (tick.loot) {
-        els.tickMsg.className = `meta ${rarityClass(tick.loot.rarity)}`;
-      } else {
-        els.tickMsg.className = 'meta';
-      }
-    }
-
+    renderCombat(snap);
+    renderSkillBar(snap);
+    renderSkillPicker(snap);
     renderDoll(snap);
     renderEquip(snap);
     renderInv(snap);
@@ -323,7 +485,7 @@ async function boot(): Promise<void> {
   });
 
   els.reset.addEventListener('click', () => {
-    if (!confirm('确定重置存档？等级 / 背包 / 装备将清空。')) return;
+    if (!confirm('确定重置存档？等级 / 背包 / 装备 / 技能栏将清空。')) return;
     engine.pause();
     const fresh = defaultSave(content.world.id);
     writeSave(fresh);
@@ -333,7 +495,8 @@ async function boot(): Promise<void> {
 
   engine.start();
 
-  (window as unknown as { __idle?: IdleEngine; __doll?: PaperDollDef }).__idle = engine;
+  (window as unknown as { __idle?: IdleEngine; __doll?: PaperDollDef }).__idle =
+    engine;
   (window as unknown as { __doll?: PaperDollDef }).__doll = doll;
 }
 

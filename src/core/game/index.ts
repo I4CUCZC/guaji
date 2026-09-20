@@ -5,4 +5,5 @@ export * from './xp';
 export * from './paper-doll';
 export * from './save';
 export * from './content-loader';
+export * from './skills';
 export * from './idle-engine';

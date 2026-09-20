@@ -1,6 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" shape-rendering="crispEdges">
-  <!-- torso undersuit -->
-  <rect x="22" y="28" width="20" height="22" fill="#4a5568"/>
-  <rect x="24" y="30" width="16" height="18" fill="#718096"/>
+  <!-- undersuit torso -->
+  <rect x="22" y="26" width="20" height="24" fill="#2d3748"/>
+  <rect x="24" y="28" width="16" height="20" fill="#4a5568"/>
+  <rect x="26" y="30" width="12" height="16" fill="#718096"/>
+  <!-- collar -->
+  <rect x="26" y="26" width="12" height="3" fill="#1a202c"/>
+  <rect x="28" y="27" width="8" height="2" fill="#a0aec0"/>
+  <!-- chest panel -->
   <rect x="28" y="34" width="8" height="6" fill="#2d3748"/>
+  <rect x="30" y="35" width="4" height="2" fill="#63b3ed"/>
+  <rect x="30" y="38" width="4" height="1" fill="#4299e1"/>
+  <!-- belt -->
+  <rect x="22" y="48" width="20" height="3" fill="#1a202c"/>
+  <rect x="30" y="48" width="4" height="3" fill="#ecc94b"/>
+  <!-- shoulder pads soft -->
+  <rect x="20" y="28" width="4" height="6" fill="#4a5568"/>
+  <rect x="40" y="28" width="4" height="6" fill="#4a5568"/>
 </svg>

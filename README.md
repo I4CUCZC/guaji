@@ -12,14 +12,20 @@ Transparent desktop idle companion with a data-driven space-world gear grind.
 ### 功能（Idle-Gear MVP）
 
 1. **单一世界：** 星际世界（`content/worlds/space/`）。生化 / 中土仅留目录占位。
-2. **挂机战斗：** 运行中每约 1.5s 自动 tick：获得 XP，按概率从掉落表掷战利品。
-3. **稀有度：** 普通 / 优良 / 稀有 / 史诗 / 传说，UI 按颜色显示。
-4. **粉丝风味装备名：** 如「狂热者光刃」「极限战士式动力臂甲」「异形头骨战利品」等（原创命名，定义在 JSON）。
-5. **细部位装备：** head / body / arm_left / arm_right / legs / weapon / accessory，每槽一件。
-6. **像素纸娃娃：** 多层 SVG；装备后对应图层替换/叠加，外观可见变化。
-7. **存档：** 等级、XP、背包、装备写入 `localStorage`。
+2. **遭遇战斗：** 挂机时生成敌人 → 双方血条可见 → 自动互相攻击数秒，一方 HP 归零结束。低级怪血薄、掉落以废料为主；高等级怪更硬、掉落表更好。战斗间有短暂喘息。
+3. **物品技能 + 三格技能栏：** 部分装备定义 `skill`（伤害 / 治疗 / 护盾）。装备后技能可装入 **恰好 3 格** 的技能栏；每技能独立冷却，战斗中自动释放。技能栏存入 `localStorage`。
+4. **稀有度：** 普通 / 优良 / 稀有 / 史诗 / 传说，UI 按颜色显示。
+5. **原创风味装备名：** 如「脉冲光刃」「虚空伺服臂甲」「虚空兽头骨」等（JSON 定义，致敬风格但不抄袭可识别 IP）。
+6. **细部位装备：** head / body / arm_left / arm_right / legs / weapon / accessory。
+7. **像素纸娃娃：** 多层 SVG；装备后对应图层切换，外观可见变化。
+8. **存档：** 等级、XP、背包、装备、技能栏 → `localStorage`。
 
-早期 Bongo Cat 动画核心仍保留在 `src/core/`（`Companion` 等），当前 UI 以挂机装备面板为主。
+### 遭遇与技能（怎么玩）
+
+1. `npm run dev` 打开页面，状态「搜寻中 / 交战中」。
+2. 遭遇后右侧出现敌方名称与红血条、己方蓝血条，战斗日志滚动（如「遭遇了虚空异虫」）。
+3. 打赢才掷掉落；低级怪多为塑钢碎片 / 动力电池。
+4. 装备带 ★ 的物品后，点「技能栏」空位装配技能（最多 3 个）。冷却数字会显示在格子上，就绪后战斗中自动释放。
 
 ### 环境
 
@@ -31,85 +37,39 @@ Transparent desktop idle companion with a data-driven space-world gear grind.
 ```bash
 cd guaji-desktop-pet
 npm install
+npm run dev          # 浏览器
+npm run electron:dev # Electron 面板
+npm run build        # 必须通过
 ```
 
-**浏览器预览（推荐先看挂机 / 装备 / 纸娃娃）：**
+### 如何添加敌人 / 技能装备
 
-```bash
-npm run dev
-```
+**敌人** — 编辑 `content/worlds/space/enemies.json`：`minLevel` / `maxLevel`、`hp`、`attack`、`drops`（权重表）。
 
-打开 `http://127.0.0.1:5173`。挂机会自动开始；观察「最近掉落」与 XP 条；在背包点击可装备物品，纸娃娃图层会变；点装备栏可卸下。
-
-**Electron 浮层面板：**
-
-```bash
-npm run electron:dev   # Vite 热更新 + Electron
-# 或
-npm run electron       # 先 build 再启动
-```
-
-单独构建：
-
-```bash
-npm run build
-```
-
-### 如何看到掉落与换装
-
-1. `npm run dev` 打开页面，状态显示「清剿中」。
-2. 等待数秒：XP 条上涨；有概率在「最近掉落」出现带颜色的物品名。
-3. 在「背包」点击带部位标签的装备（如武器 / 头部）→ 装备栏填入，左侧纸娃娃出现对应图层（光刃、护目镜、动力臂甲等）。
-4. 再点装备栏格子可卸下。存档自动保存，刷新页面保留进度。
-
-### 如何添加一件装备 / 图层
-
-1. **物品 JSON** — 新建 `content/worlds/space/items/<id>.json`：
+**带技能的装备** — 在物品 JSON 增加：
 
 ```json
-{
-  "id": "my_helm",
-  "name": "My Helm",
-  "nameZh": "我的头盔",
-  "rarity": "rare",
-  "slot": "head",
-  "stackable": false,
-  "description": "说明文字",
-  "layer": "gear/head_my_helm.svg"
+"skill": {
+  "id": "skill_example",
+  "name": "Example",
+  "nameZh": "示例技",
+  "description": "说明",
+  "cooldownMs": 10000,
+  "effect": { "type": "damage", "amount": 15 }
 }
 ```
 
-`slot` 为 `null` 表示不可装备（废料等）。`layer` 相对 `content/characters/paper-doll/layers/`。
-
-2. **掉落表** — 在 `content/worlds/space/drop_table.json` 的 `entries` 增加一行，`weight` 越大越常见。
-
-3. **注册 id** — 把 `<id>` 加入 `src/core/game/content-loader.ts` 的 `SPACE_ITEM_IDS`（保证能被加载）。
-
-4. **图层 SVG** — 在 `content/characters/paper-doll/layers/gear/` 放同名 SVG，`viewBox="0 0 64 80"`，`shape-rendering="crispEdges"`，与基底对齐。
-
-5. **槽位顺序** — 若新槽位，更新 `paper-doll.json` 的 `slots` / `layerOrder`（`slot:head` 等形式），以及 `src/core/game/types.ts` 的 `EquipSlot`。
-
-6. 重新 `npm run dev` 验证。
+`effect.type` 可为 `damage` | `heal` | `shield`。
 
 ### 目录结构
 
 ```
 guaji-desktop-pet/
-├── content/
-│   ├── worlds/
-│   │   ├── space/           # 星际世界 JSON + items
-│   │   ├── bio/             # 占位
-│   │   └── middle-earth/    # 占位
-│   └── characters/
-│       ├── bongo-cat/       # 早期动画角色（保留）
-│       └── paper-doll/      # 纸娃娃基底 + gear 图层
-├── electron/                # 薄壳（窗口略放大以容纳装备 UI）
-├── src/core/                # 动画伴侣 + idle/loot/inventory/equip/paper-doll
-│   └── game/                # 挂机引擎等纯逻辑
-├── src/renderer/            # UI 绑定
-├── index.html
-├── package.json
-└── vite.config.ts
+├── content/worlds/space/     # world / enemies / drop_table / items
+├── content/characters/paper-doll/
+├── electron/
+├── src/core/game/            # 遭遇引擎、技能、掉落、存档
+└── src/renderer/             # UI
 ```
 
 ### 脚本
@@ -118,7 +78,6 @@ guaji-desktop-pet/
 |------|------|
 | `npm run dev` | Vite 浏览器开发服务器 |
 | `npm run build` | TypeScript 检查 + 打包到 `dist/` |
-| `npm run preview` | 预览生产构建 |
 | `npm run electron` | 构建后启动 Electron |
 | `npm run electron:dev` | Vite + Electron 并行开发 |
 | `npm run typecheck` | 仅类型检查 |
@@ -127,30 +86,10 @@ guaji-desktop-pet/
 
 ## English
 
-### Idle-gear MVP
-
-- One world: **Space** (`content/worlds/space/`). Bio / Middle-earth folders are stubs only.
-- Idle ticks (~1.5s): XP + chance to roll loot from a weighted drop table.
-- Rarity colors in UI; fan-flavor item names in JSON (original naming).
-- Equipment slots: head, body, arm_left, arm_right, legs, weapon, accessory.
-- Layered pixel SVG paper-doll updates when you equip gear.
-- Save: level / xp / inventory / equipment → `localStorage`.
-
-### Run
-
-```bash
-npm install
-npm run dev          # browser
-npm run electron:dev # Electron panel
-npm run build        # must succeed
-```
-
-### Add an item
-
-1. Add `content/worlds/space/items/<id>.json` with `slot` + `layer`.
-2. Add entry to `drop_table.json`.
-3. Append id to `SPACE_ITEM_IDS` in `src/core/game/content-loader.ts`.
-4. Drop matching SVG under `content/characters/paper-doll/layers/gear/`.
+- **Encounter combat:** spawn enemy → HP bars → auto attacks for a few seconds → loot on win; short breather between fights. Early enemies = weak + junk loot; later enemies scale with player level.
+- **Item skills:** equip gear that defines a `skill`; assign up to **3** skills to the skill bar (persisted). Independent cooldowns; auto-cast in combat.
+- **Paper-doll:** finer pixel SVG layers; gear still swaps visibly.
+- Data-driven JSON under `content/worlds/space/` (including `enemies.json`).
 
 ### License
 
