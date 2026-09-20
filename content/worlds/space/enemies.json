@@ -10,9 +10,9 @@
       "tier": 1,
       "minLevel": 1,
       "maxLevel": 4,
-      "hp": 920,
-      "attack": 2,
-      "attackIntervalMs": 3400,
+      "hp": 680,
+      "attack": 1,
+      "attackIntervalMs": 3600,
       "xp": {
         "min": 6,
         "max": 10
@@ -39,7 +39,8 @@
           "weight": 2,
           "rarity": "uncommon"
         }
-      ]
+      ],
+      "portrait": "portraits/void_mite.svg"
     },
     {
       "id": "scrap_drone",
@@ -48,9 +49,9 @@
       "tier": 1,
       "minLevel": 1,
       "maxLevel": 5,
-      "hp": 1100,
-      "attack": 2,
-      "attackIntervalMs": 3200,
+      "hp": 780,
+      "attack": 1,
+      "attackIntervalMs": 3400,
       "xp": {
         "min": 7,
         "max": 12
@@ -77,7 +78,8 @@
           "weight": 6,
           "rarity": "uncommon"
         }
-      ]
+      ],
+      "portrait": "portraits/scrap_drone.svg"
     },
     {
       "id": "rebel_scout",
@@ -130,7 +132,8 @@
           "weight": 4,
           "rarity": "rare"
         }
-      ]
+      ],
+      "portrait": "portraits/rebel_scout.svg"
     },
     {
       "id": "void_floater",
@@ -188,7 +191,8 @@
           "weight": 2,
           "rarity": "epic"
         }
-      ]
+      ],
+      "portrait": "portraits/void_floater.svg"
     },
     {
       "id": "servo_skull",
@@ -251,7 +255,8 @@
           "weight": 4,
           "rarity": "epic"
         }
-      ]
+      ],
+      "portrait": "portraits/servo_skull.svg"
     },
     {
       "id": "rift_stalker",
@@ -309,7 +314,8 @@
           "weight": 4,
           "rarity": "legendary"
         }
-      ]
+      ],
+      "portrait": "portraits/rift_stalker.svg"
     },
     {
       "id": "star_wraith",
@@ -367,7 +373,8 @@
           "weight": 10,
           "rarity": "common"
         }
-      ]
+      ],
+      "portrait": "portraits/star_wraith.svg"
     }
   ]
 }

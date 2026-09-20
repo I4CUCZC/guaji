@@ -1,4 +1,4 @@
-import type { EquipSlot, EquipmentMap, SaveData, SkillBarLoadout } from './types';
+import type { EquipSlot, EquipmentMap, SaveData, SeekMode, SkillBarLoadout } from './types';
 import { EQUIP_SLOTS, PASSIVE_SKILL_BAR_SIZE, SKILL_BAR_SIZE } from './types';
 
 export const SAVE_KEY = 'guaji-idle-gear-v1';
@@ -27,6 +27,13 @@ const VALID_SLOTS = new Set<string>(EQUIP_SLOTS);
 
 export function emptySkillBar(): SkillBarLoadout {
   return [null, null, null];
+}
+
+const VALID_SEEK: ReadonlySet<string> = new Set(['weak', 'balanced', 'strong']);
+
+export function normalizeSeekMode(raw: unknown): SeekMode {
+  if (typeof raw === 'string' && VALID_SEEK.has(raw)) return raw as SeekMode;
+  return 'balanced';
 }
 
 function normalizeSkillBar(raw: unknown, size = SKILL_BAR_SIZE): SkillBarLoadout {
@@ -79,6 +86,7 @@ export function defaultSave(worldId = 'space'): SaveData {
     recentDrops: [],
     skillBar: emptySkillBar(),
     passiveSkillBar: emptySkillBar(),
+    seekMode: 'balanced',
   };
 }
 
@@ -121,6 +129,9 @@ export function loadSave(storage: Storage | null = getLocalStorage()): SaveData 
       passiveSkillBar: normalizeSkillBar(
         parsed.passiveSkillBar,
         PASSIVE_SKILL_BAR_SIZE,
+      ),
+      seekMode: normalizeSeekMode(
+        (parsed as { seekMode?: unknown }).seekMode,
       ),
     };
   } catch {

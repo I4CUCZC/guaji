@@ -14,6 +14,7 @@ import {
   SPACE_ITEM_IDS,
   SKILL_BAR_SIZE,
   PASSIVE_SKILL_BAR_SIZE,
+  SEEK_MODE_LABEL_ZH,
   fightState,
   hpBand,
   shieldTier,
@@ -24,6 +25,7 @@ import type {
   ItemDef,
   PaperDollDef,
   Rarity,
+  SeekMode,
   TickResult,
 } from '@core/index';
 import { createBridge } from './bridge';
@@ -104,14 +106,23 @@ async function boot(): Promise<void> {
       <h1>挂机桌宠 · 星际遭遇</h1>
       <span class="world-badge" data-world></span>
     </div>
-    <div class="main-row">
-      <div class="doll-wrap">
+    <div class="arena-row no-drag">
+      <div class="fighter fighter-player">
+        <div class="fighter-hp">
+          <span class="fighter-tag">我</span>
+          <div class="hp-bar player" data-player-bar>
+            <div class="hp-segments" aria-hidden="true"></div>
+            <div class="hp-fill" data-player-hp></div>
+          </div>
+          <span class="hp-num" data-player-hp-num hidden>—</span>
+        </div>
         <div class="doll-stage" data-doll>
           <div class="vfx-layer" data-vfx aria-hidden="true"></div>
         </div>
-        <div class="meta no-drag">纸娃娃预览</div>
+        <div class="fighter-label meta">纸娃娃</div>
+        <div class="shield-line meta" data-shield></div>
       </div>
-      <div class="idle-box no-drag">
+      <div class="arena-mid idle-box">
         <div class="status-line">
           <span class="status-dot" data-dot></span>
           <span data-status>准备中…</span>
@@ -120,34 +131,35 @@ async function boot(): Promise<void> {
           <div>等级 <strong data-level>1</strong> · XP <span data-xp>0</span>/<span data-xp-next>50</span></div>
           <div class="xp-bar"><div class="xp-fill" data-xp-fill></div></div>
         </div>
-        <div class="combat-block">
-          <div class="combat-title-row">
-            <div class="combat-title" data-enemy-name>等待遭遇…</div>
-            <span class="fight-state" data-fight-state hidden></span>
-          </div>
-          <div class="hp-row">
-            <span class="hp-label">敌</span>
-            <div class="hp-bar enemy" data-enemy-bar>
-              <div class="hp-segments" aria-hidden="true"></div>
-              <div class="hp-fill" data-enemy-hp></div>
-            </div>
-            <span class="hp-num" data-enemy-hp-num hidden>—</span>
-          </div>
-          <div class="hp-row">
-            <span class="hp-label">我</span>
-            <div class="hp-bar player" data-player-bar>
-              <div class="hp-segments" aria-hidden="true"></div>
-              <div class="hp-fill" data-player-hp></div>
-            </div>
-            <span class="hp-num" data-player-hp-num hidden>—</span>
-          </div>
-          <div class="shield-line meta" data-shield></div>
-          <label class="detail-toggle meta">
-            <input type="checkbox" data-detail-toggle />
-            显示详细数值
-          </label>
-          <div class="combat-log" data-combat-log></div>
+        <div class="combat-title-row">
+          <div class="combat-title" data-vs-title>等待遭遇…</div>
+          <span class="fight-state" data-fight-state hidden></span>
         </div>
+        <div class="seek-row" data-seek-row>
+          <button type="button" class="seek-btn" data-seek="weak">寻觅弱敌</button>
+          <button type="button" class="seek-btn" data-seek="balanced">寻常对手</button>
+          <button type="button" class="seek-btn" data-seek="strong">寻觅强敌</button>
+        </div>
+        <label class="detail-toggle meta">
+          <input type="checkbox" data-detail-toggle />
+          显示详细数值
+        </label>
+        <div class="combat-log" data-combat-log></div>
+      </div>
+      <div class="fighter fighter-enemy">
+        <div class="fighter-hp">
+          <span class="fighter-tag">敌</span>
+          <div class="hp-bar enemy" data-enemy-bar>
+            <div class="hp-segments" aria-hidden="true"></div>
+            <div class="hp-fill" data-enemy-hp></div>
+          </div>
+          <span class="hp-num" data-enemy-hp-num hidden>—</span>
+        </div>
+        <div class="enemy-stage" data-enemy-stage>
+          <div class="enemy-portrait" data-enemy-portrait aria-hidden="true"></div>
+          <div class="enemy-hit-flash" data-enemy-flash aria-hidden="true"></div>
+        </div>
+        <div class="fighter-label combat-title" data-enemy-name>等待遭遇…</div>
       </div>
     </div>
     <div class="skill-section no-drag">
@@ -176,7 +188,7 @@ async function boot(): Promise<void> {
       <button type="button" class="primary" data-toggle>暂停挂机</button>
       <button type="button" data-reset>重置存档</button>
     </div>
-    <p class="hint no-drag">一场势均力敌的遭遇约 5 分钟。血条用颜色与格段表示状态；战斗日志用「轻击 / 普通 / 重击 / 破防」描述手感。主动与被动各 3 格；施放主动时纸娃娃对应部位先动再出特效。数据保存在 localStorage。</p>
+    <p class="hint no-drag">对峙布局：左我右敌。可用「寻觅弱敌 / 寻常对手 / 寻觅强敌」调节难度与掉落。势均力敌约数分钟；日志用「轻击 / 普通 / 重击 / 破防」。主动与被动各 3 格。</p>
   `;
   app.appendChild(panel);
 
@@ -190,7 +202,11 @@ async function boot(): Promise<void> {
     xp: panel.querySelector('[data-xp]') as HTMLElement,
     xpNext: panel.querySelector('[data-xp-next]') as HTMLElement,
     xpFill: panel.querySelector('[data-xp-fill]') as HTMLElement,
+    vsTitle: panel.querySelector('[data-vs-title]') as HTMLElement,
     enemyName: panel.querySelector('[data-enemy-name]') as HTMLElement,
+    enemyStage: panel.querySelector('[data-enemy-stage]') as HTMLElement,
+    enemyPortrait: panel.querySelector('[data-enemy-portrait]') as HTMLElement,
+    enemyFlash: panel.querySelector('[data-enemy-flash]') as HTMLElement,
     fightState: panel.querySelector('[data-fight-state]') as HTMLElement,
     enemyBar: panel.querySelector('[data-enemy-bar]') as HTMLElement,
     enemyHp: panel.querySelector('[data-enemy-hp]') as HTMLElement,
@@ -201,6 +217,7 @@ async function boot(): Promise<void> {
     shield: panel.querySelector('[data-shield]') as HTMLElement,
     detailToggle: panel.querySelector('[data-detail-toggle]') as HTMLInputElement,
     combatLog: panel.querySelector('[data-combat-log]') as HTMLElement,
+    seekRow: panel.querySelector('[data-seek-row]') as HTMLElement,
     drops: panel.querySelector('[data-drops]') as HTMLElement,
     skillBar: panel.querySelector('[data-skill-bar]') as HTMLElement,
     skillPicker: panel.querySelector('[data-skill-picker]') as HTMLElement,
@@ -232,13 +249,50 @@ async function boot(): Promise<void> {
   let lastInvSig = '';
   let lastDollSig = '';
   let lastVfxSeq = 0;
+  let lastEnemyHitSeq = 0;
+  let lastPortraitKey = '';
   let lastLogSig = '';
+  let enemyFlashTimer = 0;
 
   function resolveDollAsset(src: string): string {
     try {
       return new URL(`${DOLL_BASE}/${src}`, window.location.href).href;
     } catch {
       return `${DOLL_BASE}/${src}`;
+    }
+  }
+
+  function resolveEnemyPortrait(portrait: string | null, defId: string): string {
+    const rel = portrait && portrait.length > 0
+      ? portrait
+      : `portraits/${defId}.svg`;
+    try {
+      return new URL(`${WORLD_BASE}/${rel}`, window.location.href).href;
+    } catch {
+      return `${WORLD_BASE}/${rel}`;
+    }
+  }
+
+  function flashEnemyHit(): void {
+    els.enemyStage.classList.remove('hit');
+    void els.enemyStage.offsetWidth;
+    els.enemyStage.classList.add('hit');
+    window.clearTimeout(enemyFlashTimer);
+    enemyFlashTimer = window.setTimeout(() => {
+      els.enemyStage.classList.remove('hit');
+    }, 280);
+  }
+
+  function renderSeekButtons(mode: SeekMode): void {
+    for (const btn of els.seekRow.querySelectorAll<HTMLButtonElement>('[data-seek]')) {
+      const m = btn.dataset.seek as SeekMode;
+      btn.classList.toggle('active', m === mode);
+      btn.title =
+        m === 'weak'
+          ? '较弱敌人，掉落较差'
+          : m === 'strong'
+            ? '更强敌人，掉落更好，可能战败'
+            : '与等级匹配的寻常对手';
     }
   }
 
@@ -391,8 +445,11 @@ async function boot(): Promise<void> {
   function renderCombat(snap: GameSnapshot): void {
     const c = snap.combat;
     const enemy = c.enemy;
+    renderSeekButtons(snap.seekMode);
+
     if (c.phase === 'fighting' && enemy) {
-      els.enemyName.textContent = `遭遇了${enemy.nameZh}`;
+      els.enemyName.textContent = enemy.nameZh;
+      els.vsTitle.textContent = `对峙 · ${enemy.nameZh}`;
       applyHpBar(
         els.enemyHp,
         els.enemyBar,
@@ -410,18 +467,47 @@ async function boot(): Promise<void> {
       els.fightState.hidden = false;
       els.fightState.textContent = state;
       els.fightState.dataset.state = state;
+
+      const pKey = `${enemy.defId}|${enemy.portrait ?? ''}`;
+      if (pKey !== lastPortraitKey) {
+        lastPortraitKey = pKey;
+        const src = resolveEnemyPortrait(enemy.portrait, enemy.defId);
+        els.enemyPortrait.innerHTML = '';
+        const img = document.createElement('img');
+        img.alt = enemy.nameZh;
+        img.draggable = false;
+        img.src = src;
+        img.onerror = () => {
+          img.onerror = null;
+          img.src = resolveEnemyPortrait('portraits/tier_fallback.svg', 'fallback');
+        };
+        els.enemyPortrait.appendChild(img);
+        els.enemyStage.classList.add('has-enemy');
+      }
     } else if (c.phase === 'breather') {
-      els.enemyName.textContent = '喘息中…下一场即将开始';
+      els.enemyName.textContent = '喘息中…';
+      els.vsTitle.textContent = '喘息中…下一场即将开始';
       applyHpBar(els.enemyHp, els.enemyBar, els.enemyHpNum, 0, 0, '—');
       els.fightState.hidden = true;
       els.fightState.textContent = '';
       delete els.fightState.dataset.state;
+      if (lastPortraitKey !== '') {
+        lastPortraitKey = '';
+        els.enemyPortrait.innerHTML = '';
+        els.enemyStage.classList.remove('has-enemy', 'hit');
+      }
     } else {
       els.enemyName.textContent = '已暂停';
+      els.vsTitle.textContent = '已暂停';
       applyHpBar(els.enemyHp, els.enemyBar, els.enemyHpNum, 0, 0, '—');
       els.fightState.hidden = true;
       els.fightState.textContent = '';
       delete els.fightState.dataset.state;
+      if (lastPortraitKey !== '') {
+        lastPortraitKey = '';
+        els.enemyPortrait.innerHTML = '';
+        els.enemyStage.classList.remove('has-enemy', 'hit');
+      }
     }
 
     applyHpBar(
@@ -458,6 +544,11 @@ async function boot(): Promise<void> {
         div.textContent = '战斗日志将显示在这里';
         els.combatLog.appendChild(div);
       }
+    }
+
+    if (c.lastEnemyHitSeq > lastEnemyHitSeq) {
+      lastEnemyHitSeq = c.lastEnemyHitSeq;
+      flashEnemyHit();
     }
 
     if (c.lastVfx && c.lastVfx.seq !== lastVfxSeq) {
@@ -979,7 +1070,7 @@ async function boot(): Promise<void> {
     } else if (snap.combat.phase === 'fighting') {
       els.status.textContent = '交战中';
     } else {
-      els.status.textContent = '搜寻中';
+      els.status.textContent = `搜寻中 · ${SEEK_MODE_LABEL_ZH[snap.seekMode]}`;
     }
     els.level.textContent = String(snap.level);
     els.xp.textContent = String(snap.xp);
@@ -1031,6 +1122,13 @@ async function boot(): Promise<void> {
     }
   });
 
+  els.seekRow.addEventListener('click', (ev) => {
+    const t = (ev.target as HTMLElement).closest('[data-seek]') as HTMLElement | null;
+    if (!t?.dataset.seek) return;
+    const mode = t.dataset.seek as SeekMode;
+    engine.setSeekMode(mode);
+  });
+
   els.detailToggle.addEventListener('change', () => {
     showDetailedNumbers = els.detailToggle.checked;
     panel.classList.toggle('show-detail-nums', showDetailedNumbers);
@@ -1065,6 +1163,8 @@ async function boot(): Promise<void> {
     lastInvSig = '';
     lastDollSig = '';
     lastLogSig = '';
+    lastEnemyHitSeq = 0;
+    lastPortraitKey = '';
     engine.replaceSave(fresh);
     engine.start();
   });

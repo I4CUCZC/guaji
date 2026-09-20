@@ -138,6 +138,8 @@ export interface EnemyDef {
   weight: number;
   /** Per-enemy loot table (low tier = mostly junk) */
   drops: DropEntry[];
+  /** Optional SVG path relative to world content root */
+  portrait?: string;
 }
 
 export interface EnemiesPack {
@@ -188,6 +190,15 @@ export type EquipmentMap = Partial<Record<EquipSlot, string>>;
 /** Exactly 3 slots; null = empty. Used independently by active and passive bars. */
 export type SkillBarLoadout = [string | null, string | null, string | null];
 
+/** Encounter seek preference — persisted in save. */
+export type SeekMode = 'weak' | 'balanced' | 'strong';
+
+export const SEEK_MODE_LABEL_ZH: Record<SeekMode, string> = {
+  weak: '寻觅弱敌',
+  balanced: '寻常对手',
+  strong: '寻觅强敌',
+};
+
 export interface SaveData {
   version: 1 | 2;
   worldId: string;
@@ -201,6 +212,8 @@ export interface SaveData {
   skillBar: SkillBarLoadout;
   /** Passive skill ids assigned to the separate 3-slot bar. */
   passiveSkillBar: SkillBarLoadout;
+  /** Encounter difficulty preference */
+  seekMode: SeekMode;
 }
 
 export type CombatPhase = 'breather' | 'fighting' | 'paused';
@@ -213,6 +226,8 @@ export interface EnemyInstance {
   attack: number;
   attackIntervalMs: number;
   tier: number;
+  /** Relative portrait path under world content, if any */
+  portrait: string | null;
 }
 
 export interface CombatLogLine {
@@ -248,6 +263,8 @@ export interface CombatView {
   skillSlots: SkillSlotView[];
   passiveSlots: SkillSlotView[];
   lastVfx: SkillVfxEvent | null;
+  /** Bumps when enemy takes damage — UI hit flash */
+  lastEnemyHitSeq: number;
 }
 
 /** Result of finishing one encounter (victory) */
@@ -285,4 +302,5 @@ export interface GameSnapshot {
   availableSkills: SkillDef[];
   passiveSkillBar: SkillBarLoadout;
   availablePassiveSkills: SkillDef[];
+  seekMode: SeekMode;
 }

@@ -9,6 +9,7 @@ import type {
   GameSnapshot,
   ItemDef,
   SaveData,
+  SeekMode,
   SkillDef,
   SkillVfxEvent,
   TickResult,
@@ -99,6 +100,7 @@ export class IdleEngine {
   private breatherCd = 0;
   private lastVfx: SkillVfxEvent | null = null;
   private vfxSeq = 0;
+  private enemyHitSeq = 0;
 
   constructor(opts: IdleEngineOptions) {
     this.world = opts.world;
@@ -115,7 +117,18 @@ export class IdleEngine {
 
   private regenAcc = 0;
 
+  private ensureSeekMode(): void {
+    if (
+      this.save.seekMode !== 'weak' &&
+      this.save.seekMode !== 'balanced' &&
+      this.save.seekMode !== 'strong'
+    ) {
+      this.save.seekMode = 'balanced';
+    }
+  }
+
   private ensureSkillBar(): void {
+    this.ensureSeekMode();
     const available = getAvailableSkills(this.save.equipment, this.itemsById);
     let bar = sanitizeSkillBar(this.save.skillBar ?? [null, null, null], available);
     bar = autoFillEmptySlots(bar, available);
@@ -167,11 +180,12 @@ export class IdleEngine {
   }
 
   private playerMaxHpForLevel(level: number): number {
-    return 180 + level * 45;
+    // Slightly softer early curve so fresh characters survive T1 reliably
+    return 240 + level * 50;
   }
 
   private playerAttackPower(): number {
-    let atk = 6 + Math.floor(this.save.level * 1.8);
+    let atk = 9 + Math.floor(this.save.level * 2);
     for (const slot of ['hand_left', 'hand_right'] as const) {
       const id = this.save.equipment[slot];
       if (!id) continue;
@@ -242,11 +256,13 @@ export class IdleEngine {
           passives,
         ),
         lastVfx: this.lastVfx,
+        lastEnemyHitSeq: this.enemyHitSeq,
       },
       skillBar: this.save.skillBar,
       availableSkills: available,
       passiveSkillBar: this.save.passiveSkillBar ?? [null, null, null],
       availablePassiveSkills: passives,
+      seekMode: this.save.seekMode ?? 'balanced',
     };
   }
 
@@ -315,28 +331,102 @@ export class IdleEngine {
     return result;
   }
 
-  private pickEnemy(): EnemyDef {
-    const level = this.save.level;
-    let pool = this.enemiesPack.enemies.filter(
+  private matchedTier(level: number): number {
+    const band = this.enemiesPack.enemies.filter(
       (e) => level >= e.minLevel && level <= e.maxLevel,
     );
-    if (pool.length === 0) {
-      pool = [...this.enemiesPack.enemies].sort(
-        (a, b) =>
-          Math.abs(a.minLevel - level) - Math.abs(b.minLevel - level),
+    if (band.length === 0) return 1;
+    return Math.round(
+      band.reduce((s, e) => s + e.tier, 0) / band.length,
+    );
+  }
+
+  private pickEnemy(): EnemyDef {
+    const level = this.save.level;
+    const mode: SeekMode = this.save.seekMode ?? 'balanced';
+    const all = this.enemiesPack.enemies;
+    let pool: EnemyDef[] = [];
+
+    if (mode === 'weak') {
+      const match = this.matchedTier(level);
+      pool = all.filter(
+        (e) => e.minLevel <= level + 1 && e.tier <= Math.max(1, match - 1),
       );
-      pool = pool.slice(0, 2);
+      if (pool.length === 0) {
+        pool = all.filter((e) => e.minLevel <= level + 1);
+        const minT = Math.min(...pool.map((e) => e.tier));
+        pool = pool.filter((e) => e.tier === minT);
+      }
+    } else if (mode === 'strong') {
+      const match = this.matchedTier(level);
+      pool = all.filter(
+        (e) =>
+          e.minLevel <= level + 4 &&
+          e.maxLevel >= Math.max(1, level - 2) &&
+          e.tier >= match,
+      );
+      if (pool.length === 0) {
+        pool = all.filter((e) => e.minLevel <= level + 5);
+        const maxT = Math.max(...pool.map((e) => e.tier));
+        pool = pool.filter((e) => e.tier >= maxT - 1);
+      }
+    } else {
+      pool = all.filter(
+        (e) => level >= e.minLevel && level <= e.maxLevel,
+      );
+      if (pool.length === 0) {
+        pool = [...all].sort(
+          (a, b) =>
+            Math.abs(a.minLevel - level) - Math.abs(b.minLevel - level),
+        );
+        pool = pool.slice(0, 2);
+      }
     }
+
     const picked = rollWeighted(pool, this.rng);
-    return picked ?? this.enemiesPack.enemies[0]!;
+    return picked ?? all[0]!;
+  }
+
+  private seekStatMul(): { hp: number; atk: number } {
+    const mode: SeekMode = this.save.seekMode ?? 'balanced';
+    if (mode === 'weak') return { hp: 0.72, atk: 0.58 };
+    if (mode === 'strong') return { hp: 1.28, atk: 1.22 };
+    return { hp: 1, atk: 1 };
+  }
+
+  private biasDrops(entries: DropEntry[]): DropEntry[] {
+    const mode: SeekMode = this.save.seekMode ?? 'balanced';
+    if (mode === 'balanced' || entries.length === 0) return entries;
+    return entries.map((e) => {
+      let w = e.weight;
+      if (mode === 'weak') {
+        if (e.rarity === 'common') w *= 2.2;
+        else if (e.rarity === 'uncommon') w *= 1.0;
+        else if (e.rarity === 'rare') w *= 0.35;
+        else if (e.rarity === 'epic') w *= 0.12;
+        else w *= 0.05;
+      } else {
+        if (e.rarity === 'common') w *= 0.45;
+        else if (e.rarity === 'uncommon') w *= 0.75;
+        else if (e.rarity === 'rare') w *= 1.7;
+        else if (e.rarity === 'epic') w *= 2.3;
+        else w *= 3.0;
+      }
+      return { ...e, weight: Math.max(1, Math.round(w)) };
+    });
+  }
+
+  private noteEnemyHit(): void {
+    this.enemyHitSeq += 1;
   }
 
   private spawnEncounter(): void {
     const def = this.pickEnemy();
     const over = Math.max(0, this.save.level - def.minLevel);
-    const hpScale = 1 + over * 0.05;
-    const atkScale = 1 + over * 0.035;
-    const maxHp = Math.round(def.hp * hpScale);
+    const seek = this.seekStatMul();
+    const hpScale = (1 + over * 0.05) * seek.hp;
+    const atkScale = (1 + over * 0.035) * seek.atk;
+    const maxHp = Math.max(40, Math.round(def.hp * hpScale));
     this.enemy = {
       defId: def.id,
       nameZh: def.nameZh,
@@ -345,6 +435,7 @@ export class IdleEngine {
       attack: Math.max(1, Math.round(def.attack * atkScale)),
       attackIntervalMs: def.attackIntervalMs,
       tier: def.tier,
+      portrait: def.portrait ?? `portraits/${def.id}.svg`,
     };
     this.phase = 'fighting';
     this.playerAtkCd = 800;
@@ -355,7 +446,10 @@ export class IdleEngine {
       this.playerMaxHp,
       this.playerHp + Math.floor(this.playerMaxHp * 0.35),
     );
-    this.pushLog(`遭遇了${def.nameZh}`, 'encounter');
+    const mode = this.save.seekMode ?? 'balanced';
+    const modeTag =
+      mode === 'weak' ? '（弱敌）' : mode === 'strong' ? '（强敌）' : '';
+    this.pushLog(`遭遇了${def.nameZh}${modeTag}`, 'encounter');
   }
 
   private fightFrame(dt: number): TickResult | null {
@@ -367,6 +461,7 @@ export class IdleEngine {
     if (this.playerAtkCd <= 0 && this.enemy.hp > 0) {
       const dmg = this.outgoingDamage(this.playerAttackPower());
       this.enemy.hp = Math.max(0, this.enemy.hp - dmg);
+      this.noteEnemyHit();
       this.pushLog(
         formatDamageOutLog(this.enemy.nameZh, dmg, this.enemy.maxHp, false),
         'damage_out',
@@ -402,7 +497,7 @@ export class IdleEngine {
     }
 
     if (this.playerHp <= 0) {
-      this.pushLog('你被击倒了…稍作喘息后继续', 'system');
+      this.pushLog('战败…生命已恢复，继续按当前寻觅模式搜寻', 'system');
       this.enemy = null;
       this.phase = 'breather';
       this.breatherCd = Math.min(this.enemiesPack.breatherMs + 2000, 12000);
@@ -444,6 +539,7 @@ export class IdleEngine {
     if (effect.type === 'damage' && this.enemy) {
       const amount = this.outgoingDamage(effect.amount);
       this.enemy.hp = Math.max(0, this.enemy.hp - amount);
+      this.noteEnemyHit();
       this.pushLog(
         formatSkillDamageLog(
           skill.nameZh,
@@ -508,11 +604,11 @@ export class IdleEngine {
     }
 
     let loot: ItemDef | null = null;
-    const entries =
+    const rawEntries =
       def.drops.length > 0 ? (def.drops as DropEntry[]) : this.dropTable.entries;
     const table: DropTable = {
       worldId: this.world.id,
-      entries,
+      entries: this.biasDrops(rawEntries),
     };
     loot = rollLoot(table, this.itemsById, this.rng);
     if (loot) {
@@ -537,6 +633,17 @@ export class IdleEngine {
     this.breatherCd = this.enemiesPack.breatherMs;
     if (this.persist) writeSave(this.save);
     return result;
+  }
+
+  setSeekMode(mode: SeekMode): void {
+    if (mode !== 'weak' && mode !== 'balanced' && mode !== 'strong') return;
+    if (this.save.seekMode === mode) return;
+    this.save.seekMode = mode;
+    if (this.persist) writeSave(this.save);
+    const label =
+      mode === 'weak' ? '寻觅弱敌' : mode === 'strong' ? '寻觅强敌' : '寻常对手';
+    this.pushLog(`寻觅模式：${label}`, 'system');
+    this.emit(null);
   }
 
   setSkillBarSlot(slotIndex: number, skillId: string | null): void {
